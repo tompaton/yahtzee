@@ -248,10 +248,10 @@ function ScoreSheet() {
   const td_value = (player, row, score) => {
     if (player.scores[row].length == 0) {
       if (player.current)
-        return score({ [row]: [state.roll] });
+        return <Maybe val={() => score({ [row]: [state.roll] })} />;
       else return '';
     }
-    return score(player.scores);
+    return <Actual val={() => score(player.scores)} />;
   };
 
   const td_ones = (player) => td_value(player, 'ones', score_ones);
@@ -324,6 +324,17 @@ function Row(props) {
     </tr>
   );
 }
+
+function Actual(props) {
+  const { val } = props;
+  return <span class={styles.actual}>{val}</span>;
+}
+
+function Maybe(props) {
+  const { val } = props;
+  return <span class={styles.maybe}>{val}</span>;
+}
+
 
 function RollInput() {
   const roll_string = () => {

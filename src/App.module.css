@@ -108,3 +108,11 @@ table.scores tbody td {
   width: 10em;
   padding: 5px 0px;
 }
+
+span.actual {
+  color: greenyellow;
+}
+
+span.maybe {
+  color: orange;
+}
