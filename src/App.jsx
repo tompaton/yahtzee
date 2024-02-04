@@ -8,7 +8,7 @@ const [state, setState] = createStore({
   roll: [1, 2, 3, 4, 5],
   players: [
     {
-      name: 'Tom',
+      name: 'Tom', current: true,
       scores: {
         "ones": [[1, 1, 1, 2, 3]],
         "twos": [[2, 3, 4, 5, 6], [2, 2, 3, 4, 5]],
@@ -26,7 +26,7 @@ const [state, setState] = createStore({
       }
     },
     {
-      name: 'P2',
+      name: 'P2', current: false,
       scores: {
         "ones": [],
         "twos": [],
@@ -224,7 +224,11 @@ function ScoreSheet() {
   const score_total = (scores) => { return score_upper_total(scores) + score_lower_total(scores) };
 
   const td_value = (player, row, score) => {
-    if (player.scores[row].length == 0) return '';
+    if (player.scores[row].length == 0) {
+      if (player.current)
+        return score({ [row]: [state.roll] });
+      else return '';
+    }
     return score(player.scores);
   };
 
