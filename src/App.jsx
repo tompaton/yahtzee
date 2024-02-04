@@ -15,11 +15,11 @@ const [state, setState] = createStore({
         "fours": [[4, 4, 4, 2, 1]],
         "fives": [[5, 5, 5, 5, 5]],
         "sixes": [[6, 6, 6, 6, 1]],
-        "3ofakind": [[3, 3, 3, 2, 2]],
-        "4ofakind": [[3, 3, 3, 2, 2]],
+        "triple": [[3, 3, 3, 2, 2]],
+        "quad": [[3, 3, 3, 2, 2]],
         "fullhouse": [[3, 3, 3, 2, 2]],
-        "smstraight": [[1, 3, 4, 5, 6]],
-        "lgstraight": [[2, 3, 4, 5, 6]],
+        "small": [[1, 3, 4, 5, 6]],
+        "large": [[2, 3, 4, 5, 6]],
         "yahtzee": [[6, 6, 6, 6, 6], [5, 5, 5, 5, 5]],
         "chance": [[1, 1, 1, 1, 1]],
       }
@@ -33,11 +33,11 @@ const [state, setState] = createStore({
         "fours": [],
         "fives": [],
         "sixes": [],
-        "3ofakind": [],
-        "4ofakind": [],
+        "triple": [],
+        "quad": [],
         "fullhouse": [],
-        "smstraight": [],
-        "lgstraight": [],
+        "small": [],
+        "large": [],
         "yahtzee": [],
         "chance": [],
       }
@@ -103,7 +103,7 @@ function countDice(dice) {
   return counts;
 }
 
-function isNofakind(N) {
+function isTuple(N) {
   return (dice) => {
     const counts = countDice(dice);
 
@@ -151,7 +151,7 @@ function yahtzeeBonus(rolls) {
   let total = 0;
   for (const roll of rolls)
     if (isYahtzee(roll)) total += 100;
-  return total - 100;
+  return Math.max(0, total - 100);
 }
 
 function isChance(dice) {
@@ -166,27 +166,44 @@ function ScoreSheet() {
   const score_fives = (scores) => totalJust(5, scores.fives);
   const score_sixes = (scores) => totalJust(6, scores.sixes);
 
-  const score_upper_subtotal = (scores) => { return score_ones(scores) + score_twos(scores) + score_threes(scores) + score_fours(scores) + score_fives(scores) + score_sixes(scores) };
+  const score_upper_subtotal = (scores) => {
+    return score_ones(scores)
+      + score_twos(scores)
+      + score_threes(scores)
+      + score_fours(scores)
+      + score_fives(scores)
+      + score_sixes(scores);
+  };
   const score_upper_bonus = (scores) => { return score_upper_subtotal(scores) >= 63 ? 35 : 0 };
   const score_upper_total = (scores) => { return score_upper_subtotal(scores) + score_upper_bonus(scores) };
 
-  const score_3ofakind = (scores) => totalAll(isNofakind(3), scores["3ofakind"]);
-  const score_4ofakind = (scores) => totalAll(isNofakind(4), scores["4ofakind"]);
+  const score_triple = (scores) => totalAll(isTuple(3), scores["triple"]);
+  const score_quad = (scores) => totalAll(isTuple(4), scores["quad"]);
   const score_fullhouse = (scores) => totalIf(25, isFullHouse, scores.fullhouse);
-  const score_smstraight = (scores) => totalIf(30, isStraight(4), scores.smstraight);
-  const score_lgstraight = (scores) => totalIf(40, isStraight(5), scores.lgstraight);
+  const score_small = (scores) => totalIf(30, isStraight(4), scores.small);
+  const score_large = (scores) => totalIf(40, isStraight(5), scores.large);
   const score_yahtzee = (scores) => totalIf(50, isYahtzee, scores.yahtzee);
   const score_chance = (scores) => totalAll(isChance, scores.chance);
 
   const score_yahtzee_bonus = (scores) => yahtzeeBonus(scores.yahtzee);
 
-  const score_lower_total = (scores) => { return score_3ofakind(scores) + score_4ofakind(scores) + score_fullhouse(scores) + score_smstraight(scores) + score_lgstraight(scores) + score_yahtzee(scores) + score_chance(scores) + score_yahtzee_bonus(scores) };
+  const score_lower_total = (scores) => {
+    return score_triple(scores)
+      + score_quad(scores)
+      + score_fullhouse(scores)
+      + score_small(scores)
+      + score_large(scores)
+      + score_yahtzee(scores)
+      + score_chance(scores)
+      + score_yahtzee_bonus(scores);
+  };
   const score_total = (scores) => { return score_upper_total(scores) + score_lower_total(scores) };
 
   const td_value = (player, row, score) => {
     if (player.scores[row].length == 0) return '';
     return score(player.scores);
   };
+
   const td_ones = (player) => td_value(player, 'ones', score_ones);
   const td_twos = (player) => td_value(player, 'twos', score_twos);
   const td_threes = (player) => td_value(player, 'threes', score_threes);
@@ -195,20 +212,17 @@ function ScoreSheet() {
   const td_sixes = (player) => td_value(player, 'sixes', score_sixes);
 
   const td_upper_subtotal = (player) => score_upper_subtotal(player.scores);
-  const td_upper_bonus = (player) => {
-    for (const row of ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'])
-      if (player.scores[row].length == 0) return '';
-    return score_upper_bonus(player.scores);
-  };
+  const td_upper_bonus = (player) => score_upper_bonus(player.scores);
+
   const td_upper_total = (player) => score_upper_total(player.scores);
 
-  const td_3ofakind = (player) => score_3ofakind(player.scores);
-  const td_4ofakind = (player) => score_4ofakind(player.scores);
-  const td_fullhouse = (player) => score_fullhouse(player.scores);
-  const td_smstraight = (player) => score_smstraight(player.scores);
-  const td_lgstraight = (player) => score_lgstraight(player.scores);
-  const td_yahtzee = (player) => score_yahtzee(player.scores);
-  const td_chance = (player) => score_chance(player.scores);
+  const td_triple = (player) => td_value(player, 'triple', score_triple);
+  const td_quad = (player) => td_value(player, 'quad', score_quad);
+  const td_fullhouse = (player) => td_value(player, 'fullhouse', score_fullhouse);
+  const td_small = (player) => td_value(player, 'small', score_small);
+  const td_large = (player) => td_value(player, 'large', score_large);
+  const td_yahtzee = (player) => td_value(player, 'yahtzee', score_yahtzee);
+  const td_chance = (player) => td_value(player, 'chance', score_chance);
   const td_yahtzee_bonus = (player) => score_yahtzee_bonus(player.scores);
 
   const td_lower_total = (player) => score_lower_total(player.scores);
@@ -217,103 +231,48 @@ function ScoreSheet() {
   return (
     <table>
       <tbody>
-        <tr class="head">
-          <th>Upper Section</th>
-          <For each={state.players}>{(player) =>
-            <th>{player.name}</th>
-          }</For>
-        </tr>
-        <tr>
-          <th>Aces</th>
-          <For each={state.players}>{(player) =>
-            <td>{td_ones(player)}</td>
-          }</For>
-        </tr>
-        <tr>
-          <th>Twos</th>
-          <td>{td_twos(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>Threes</th>
-          <td>{td_threes(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>Fours</th>
-          <td>{td_fours(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>Fives</th>
-          <td>{td_fives(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>Sixes</th>
-          <td>{td_sixes(state.players[0])}</td>
-        </tr>
-        <tr class="foot">
-          <th>Total</th>
-          <td>{td_upper_subtotal(state.players[0])}</td>
-        </tr>
-        <tr class="foot">
-          <th>Bonus</th>
-          <td>{td_upper_bonus(state.players[0])}</td>
-        </tr>
-        <tr class="foot">
-          <th>Total</th>
-          <td>{td_upper_total(state.players[0])}</td>
-        </tr>
+        <Row class="head" label="Upper Section" th={(player) => player.name} />
+        <Row label="Aces" td={td_ones} />
+        <Row label="Twos" td={td_twos} />
+        <Row label="Threes" td={td_threes} />
+        <Row label="Fours" td={td_fours} />
+        <Row label="Fives" td={td_fives} />
+        <Row label="Sixes" td={td_sixes} />
+        <Row class="foot" label="Total" td={td_upper_subtotal} />
+        <Row class="foot" label="Bonus" td={td_upper_bonus} />
+        <Row class="foot" label="Total" td={td_upper_total} />
 
-        <tr class="head">
-          <th>Lower Section</th>
-          <td></td>
-        </tr>
-        <tr>
-          <th>3 of a Kind</th>
-          <td>{td_3ofakind(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>4 of a Kind</th>
-          <td>{td_4ofakind(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>Full House</th>
-          <td>{td_fullhouse(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>Small Straight</th>
-          <td>{td_smstraight(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>Large Straight</th>
-          <td>{td_lgstraight(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>YAHTZEE</th>
-          <td>{td_yahtzee(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>Chance</th>
-          <td>{td_chance(state.players[0])}</td>
-        </tr>
-        <tr>
-          <th>YAHTZEE BONUS</th>
-          <td>{td_yahtzee_bonus(state.players[0])}</td>
-        </tr>
-        <tr class="foot">
-          <th>Lower Section Total</th>
-          <td>{td_lower_total(state.players[0])}</td>
-        </tr>
-        <tr class="foot">
-          <th>Upper Section Total</th>
-          <td>{td_upper_total(state.players[0])}</td>
-        </tr>
-        <tr class="foot">
-          <th>Grand Total</th>
-          <td>{td_total(state.players[0])}</td>
-        </tr>
+        <Row class="head" label="Lower Section" td={(player) => ''} />
+        <Row label="3 of a Kind" td={td_triple} />
+        <Row label="4 of a Kind" td={td_quad} />
+        <Row label="Full House" td={td_fullhouse} />
+        <Row label="Small Straight" td={td_small} />
+        <Row label="Large Straight" td={td_large} />
+        <Row label="YAHTZEE" td={td_yahtzee} />
+        <Row label="Chance" td={td_chance} />
+        <Row label="YAHTZEE BONUS" td={td_yahtzee_bonus} />
 
+        <Row class="foot" label="Lower Section Total" td={td_lower_total} />
+        <Row class="foot" label="Upper Section Total" td={td_upper_total} />
+        <Row class="foot" label="Grand Total" td={td_total} />
       </tbody>
     </table>
   )
+}
+
+function Row(props) {
+  const { label: label, th: player_th, td: player_td, ...attrs } = props;
+  return (
+    <tr {...attrs}>
+      <th>{label}</th>
+      <For each={state.players}>
+        {(player) => {
+          if (player_th) return <th>{player_th(player)}</th>;
+          if (player_td) return <td>{player_td(player)}</td>;
+        }}
+      </For>
+    </tr>
+  );
 }
 
 export default App;
