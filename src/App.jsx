@@ -11,9 +11,9 @@ const [state, setState] = createStore({
         "ones": [[1, 1, 1, 2, 3]],
         "twos": [[2, 3, 4, 5, 6], [2, 2, 3, 4, 5]],
         "threes": [[5, 5, 5, 5, 5]],
-        "fours": [],
+        "fours": [[4, 4, 4, 2, 1]],
         "fives": [[5, 5, 5, 5, 5]],
-        "sixes": [],
+        "sixes": [[6, 6, 6, 6, 1]],
         "3ofakind": [[3, 3, 3, 2, 2]],
         "4ofakind": [[3, 3, 3, 2, 2]],
         "fullhouse": [[3, 3, 3, 2, 2]],
@@ -77,32 +77,26 @@ function totalIf(score, check, rolls) {
   else return 0;
 }
 
-function is3ofakind(dice) {
+function countDice(dice) {
   const counts = {};
   for (const die of dice)
     counts[die] = (counts[die] || 0) + 1;
-
-  for (let i = 1; i <= 6; i++)
-    if (counts[i] >= 3) return true;
-
-  return false;
+  return counts;
 }
 
-function is4ofakind(dice) {
-  const counts = {};
-  for (const die of dice)
-    counts[die] = (counts[die] || 0) + 1;
+function isNofakind(N) {
+  return (dice) => {
+    const counts = countDice(dice);
 
-  for (let i = 1; i <= 6; i++)
-    if (counts[i] >= 4) return true;
+    for (let i = 1; i <= 6; i++)
+      if (counts[i] >= N) return true;
 
-  return false;
+    return false;
+  };
 }
 
 function isFullHouse(dice) {
-  const counts = {};
-  for (const die of dice)
-    counts[die] = (counts[die] || 0) + 1;
+  const counts = countDice(dice);
 
   let pair = false, triple = false;
   for (let i = 1; i <= 6; i++) {
@@ -115,9 +109,7 @@ function isFullHouse(dice) {
 
 function isStraight(length) {
   return (dice) => {
-    const counts = {};
-    for (const die of dice)
-      counts[die] = (counts[die] || 0) + 1;
+    const counts = countDice(dice);
 
     if (length == 4) {
       if (counts[1] && counts[2] && counts[3] && counts[4]) return true;
@@ -140,7 +132,7 @@ function yahtzeeBonus(rolls) {
   let total = 0;
   for (const roll of rolls)
     if (isYahtzee(roll)) total += 100;
-  return total;
+  return total - 100;
 }
 
 function isChance(dice) {
@@ -159,8 +151,8 @@ function ScoreSheet() {
   const score_upper_bonus = () => { return score_upper_subtotal() >= 63 ? 35 : 0 };
   const score_upper_total = () => { return score_upper_subtotal() + score_upper_bonus() };
 
-  const score_3ofakind = () => totalAll(is3ofakind, state.players[0].scores["3ofakind"]);
-  const score_4ofakind = () => totalAll(is4ofakind, state.players[0].scores["4ofakind"]);
+  const score_3ofakind = () => totalAll(isNofakind(3), state.players[0].scores["3ofakind"]);
+  const score_4ofakind = () => totalAll(isNofakind(4), state.players[0].scores["4ofakind"]);
   const score_fullhouse = () => totalIf(25, isFullHouse, state.players[0].scores.fullhouse);
   const score_smstraight = () => totalIf(30, isStraight(4), state.players[0].scores.smstraight);
   const score_lgstraight = () => totalIf(40, isStraight(5), state.players[0].scores.lgstraight);
@@ -172,15 +164,23 @@ function ScoreSheet() {
   const score_lower_total = () => { return score_3ofakind() + score_4ofakind() + score_fullhouse() + score_smstraight() + score_lgstraight() + score_yahtzee() + score_chance() + score_yahtzee_bonus() };
   const score_total = () => { return score_upper_total() + score_lower_total() };
 
-  const td_ones = () => score_ones();
-  const td_twos = () => score_twos();
-  const td_threes = () => score_threes();
-  const td_fours = () => score_fours();
-  const td_fives = () => score_fives();
-  const td_sixes = () => score_sixes();
+  const td_value = (row, score) => {
+    if (state.players[0].scores[row].length == 0) return '';
+    return score();
+  };
+  const td_ones = () => td_value('ones', score_ones);
+  const td_twos = () => td_value('twos', score_twos);
+  const td_threes = () => td_value('threes', score_threes);
+  const td_fours = () => td_value('fours', score_fours);
+  const td_fives = () => td_value('fives', score_fives);
+  const td_sixes = () => td_value('sixes', score_sixes);
 
   const td_upper_subtotal = () => score_upper_subtotal();
-  const td_upper_bonus = () => score_upper_bonus();
+  const td_upper_bonus = () => {
+    for (const row of ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'])
+      if (state.players[0].scores[row].length == 0) return '';
+    return score_upper_bonus();
+  };
   const td_upper_total = () => score_upper_total();
 
   const td_3ofakind = () => score_3ofakind();
