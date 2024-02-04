@@ -313,9 +313,10 @@ function Roll() {
   );
 }
 
+const DOTS = { 1: [7], 2: [3, 4], 3: [3, 4, 7], 4: [1, 3, 4, 6], 5: [1, 3, 4, 6, 7], 6: [1, 2, 3, 4, 5, 6] };
 function Die(props) {
   const { face } = props;
-  return <div class={styles.face}>{face}</div>;
+  return <div class={styles.face} title={face}><For each={DOTS[face]}>{(dot) => <div class={styles['dot' + dot]} />}</For></div>;
 }
 
 export default App;

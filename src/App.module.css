@@ -19,6 +19,7 @@
 
 
 div.face {
+  position: relative;
   display: inline-block;
   width: 1em;
   height: 1em;
@@ -27,6 +28,56 @@ div.face {
   border: 2px solid white;
   border-radius: 25%;
   margin: 0em 0.5em 1em 0.5em;
+}
+
+div.dot1,
+div.dot2,
+div.dot3,
+div.dot4,
+div.dot5,
+div.dot6,
+div.dot7 {
+  position: absolute;
+  display: inline-block;
+  width: .7em;
+  height: .7em;
+  border-radius: 50%;
+  background-color: white;
+}
+
+div.dot1 {
+  top: 0.25em;
+  left: 0.25em;
+}
+
+div.dot2 {
+  top: 1.125em;
+  left: 0.25em;
+}
+
+div.dot3 {
+  top: 2em;
+  left: 0.25em;
+}
+
+div.dot4 {
+  top: 0.25em;
+  left: 2em;
+}
+
+div.dot5 {
+  top: 1.125em;
+  left: 2em;
+}
+
+div.dot6 {
+  top: 2em;
+  left: 2em;
+}
+
+div.dot7 {
+  top: 1.125em;
+  left: 1.125em;
 }
 
 table.scores th,
