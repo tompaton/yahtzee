@@ -29,11 +29,11 @@ table tr th:first-child {
   text-align: left;
 }
 
-table thead th {
+table tr.head th {
   text-transform: uppercase;
 }
 
-table tfoot th {
+table tr.foot th {
   text-transform: uppercase;
 }
 
