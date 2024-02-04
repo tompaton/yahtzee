@@ -19,32 +19,3 @@ table {
   margin-left: auto;
   margin-right: auto;
 }
-
-table th,
-table td {
-  border: 1px solid gray;
-}
-
-table tr th:first-child {
-  text-align: left;
-}
-
-table tr.head th {
-  padding: 10px 0px;
-  text-transform: uppercase;
-}
-
-table tr.foot th {
-  padding: 10px 0px;
-  text-transform: uppercase;
-}
-
-table tbody th:first-child {
-  width: 30em;
-  padding-left: 10px;
-}
-
-table tbody td {
-  width: 10em;
-  padding: 5px 0px;
-}

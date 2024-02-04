@@ -5,6 +5,7 @@ import styles from './App.module.css';
 
 
 const [state, setState] = createStore({
+  roll: [1, 2, 3, 4, 5],
   players: [
     {
       name: 'Tom',
@@ -55,6 +56,11 @@ function zeroScores() {
   }
 }
 
+function roll() {
+  for (let i = 0; i < 5; i++)
+    setState("roll", i, Math.ceil(6.0 * Math.random()));
+}
+
 function App() {
 
   return (
@@ -65,6 +71,12 @@ function App() {
         </h1>
       </header>
       <article>
+        <section>
+          <nav>
+            <button onClick={() => roll()}>Roll</button>
+          </nav>
+          <Roll />
+        </section>
         <section>
           <nav>
             <button onClick={() => zeroScores()}>Zero</button>
@@ -241,7 +253,7 @@ function ScoreSheet() {
   const td_total = (player) => score_total(player.scores);
 
   return (
-    <table>
+    <table class={styles.scores}>
       <tbody>
         <Row class="head" label="Upper Section" th={(player) => player.name} />
         <Row label="Aces" td={td_ones} />
@@ -285,6 +297,25 @@ function Row(props) {
       </For>
     </tr>
   );
+}
+
+function Roll() {
+  return (
+    <table>
+      <tbody>
+        <tr>
+          <For each={state.roll}>
+            {(die) => <td><Die face={die} /></td>}
+          </For>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+function Die(props) {
+  const { face } = props;
+  return <div class={styles.face}>{face}</div>;
 }
 
 export default App;

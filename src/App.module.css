@@ -16,3 +16,44 @@
   text-align: center;
   padding-bottom: 1em;
 }
+
+
+div.face {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  font-size: 2em;
+  padding: 1em;
+  border: 2px solid white;
+  border-radius: 25%;
+  margin: 0em 0.5em 1em 0.5em;
+}
+
+table.scores th,
+table.scores td {
+  border: 1px solid gray;
+}
+
+table.scores tr th:first-child {
+  text-align: left;
+}
+
+table.scores tr.head th {
+  padding: 10px 0px;
+  text-transform: uppercase;
+}
+
+table.scores tr.foot th {
+  padding: 10px 0px;
+  text-transform: uppercase;
+}
+
+table.scores tbody th:first-child {
+  width: 30em;
+  padding-left: 10px;
+}
+
+table.scores tbody td {
+  width: 10em;
+  padding: 5px 0px;
+}
