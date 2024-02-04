@@ -46,6 +46,15 @@ const [state, setState] = createStore({
 });
 
 
+function zeroScores() {
+  let i = 0;
+  for (const player of state.players) {
+    for (const row in player.scores)
+      setState("players", i, "scores", row, []);
+    i++;
+  }
+}
+
 function App() {
 
   return (
@@ -57,6 +66,9 @@ function App() {
       </header>
       <article>
         <section>
+          <nav>
+            <button onClick={() => zeroScores()}>Zero</button>
+          </nav>
           <ScoreSheet />
         </section>
       </article>
