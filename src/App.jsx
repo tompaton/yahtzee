@@ -5,7 +5,7 @@ import styles from './App.module.css';
 
 
 const [state, setState] = createStore({
-  roll: [1, 2, 3, 4, 5],
+  roll: [1, 2, 3, 4, 5], roll_input: "",
   players: [
     {
       name: 'Tom', current: true,
@@ -61,6 +61,27 @@ function roll() {
     setState("roll", i, Math.ceil(6.0 * Math.random()));
 }
 
+function setRoll(roll_string) {
+  const result = [];
+  let remainder = "";
+
+  for (let i = 0; i < roll_string.length; i++) {
+    let c = roll_string.charAt(i);
+    if (c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6') {
+      result.push(+c);
+      remainder += c;
+    }
+  }
+
+  if (result.length == 5) {
+    for (let i = 0; i < 5; i++)
+      setState("roll", i, result[i]);
+    setState("roll_input", "");
+  } else {
+    setState("roll_input", remainder);
+  }
+}
+
 function App() {
 
   return (
@@ -73,6 +94,7 @@ function App() {
       <article>
         <section>
           <nav>
+            <RollInput />
             <button onClick={() => roll()}>Roll</button>
           </nav>
           <Roll />
@@ -300,6 +322,24 @@ function Row(props) {
         }}
       </For>
     </tr>
+  );
+}
+
+function RollInput() {
+  const roll_string = () => {
+    let s = "";
+    for (const i of state.roll)
+      s += i.toString();
+    return s;
+  };
+
+  return (
+    <input onInput={(e) => setRoll(e.currentTarget.value)}
+      minlength={5} maxLength={5} size={5}
+      value={state.roll_input}
+      placeholder={roll_string()}
+      style={{ "margin-right": "2em" }}
+    />
   );
 }
 
