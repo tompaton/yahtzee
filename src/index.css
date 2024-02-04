@@ -30,17 +30,21 @@ table tr th:first-child {
 }
 
 table tr.head th {
+  padding: 10px 0px;
   text-transform: uppercase;
 }
 
 table tr.foot th {
+  padding: 10px 0px;
   text-transform: uppercase;
 }
 
-table tbody th {
+table tbody th:first-child {
   width: 30em;
+  padding-left: 10px;
 }
 
 table tbody td {
   width: 10em;
+  padding: 5px 0px;
 }
