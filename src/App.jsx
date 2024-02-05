@@ -145,19 +145,15 @@ function App() {
         <h1>
           Yahtzee Scoresheet
         </h1>
+        <nav>
+          <button onClick={() => zeroScores()}>New Game</button>
+        </nav>
       </header>
       <article>
         <section>
-          <nav>
-            <RollInput />
-            <button onClick={() => roll()}>Random</button>
-          </nav>
           <Roll />
         </section>
         <section>
-          <nav>
-            <button onClick={() => zeroScores()}>Zero</button>
-          </nav>
           <ScoreSheet />
         </section>
       </article>
@@ -311,12 +307,7 @@ function ScoreSheet() {
     return <Actual val={() => score(player.scores)} />;
   };
 
-  const th_player = (player) => {
-    if (player.current)
-      return '*' + player.name + '*';
-    else
-      return player.name;
-  }
+  const th_player = (player) => <th classList={{ [styles.current]: player.current }}>{player.name}</th>;
 
   const td_ones = (player) => td_value(player, 'ones', score_ones);
   const td_twos = (player) => td_value(player, 'twos', score_twos);
@@ -345,18 +336,18 @@ function ScoreSheet() {
   return (
     <table class={styles.scores}>
       <tbody>
-        <Row class="head" label="Upper Section" th={th_player} />
+        <Row2 class={styles.head} label="Upper Section" value={th_player} />
         <Row label="Aces" td={td_ones} />
         <Row label="Twos" td={td_twos} />
         <Row label="Threes" td={td_threes} />
         <Row label="Fours" td={td_fours} />
         <Row label="Fives" td={td_fives} />
         <Row label="Sixes" td={td_sixes} />
-        <Row class="foot" label="Total" td={td_upper_subtotal} />
-        <Row class="foot" label="Bonus" td={td_upper_bonus} />
-        <Row class="foot" label="Total" td={td_upper_total} />
+        <Row class={styles.foot} label="Total" td={td_upper_subtotal} />
+        <Row class={styles.foot} label="Bonus" td={td_upper_bonus} />
+        <Row class={styles.foot} label="Total" td={td_upper_total} />
 
-        <Row class="head" label="Lower Section" td={(player) => ''} />
+        <Row class={styles.head} label="Lower Section" td={(player) => ''} />
         <Row label="3 of a Kind" td={td_triple} />
         <Row label="4 of a Kind" td={td_quad} />
         <Row label="Full House" td={td_fullhouse} />
@@ -366,9 +357,9 @@ function ScoreSheet() {
         <Row label="Chance" td={td_chance} />
         <Row label="YAHTZEE BONUS" td={td_yahtzee_bonus} />
 
-        <Row class="foot" label="Lower Section Total" td={td_lower_total} />
-        <Row class="foot" label="Upper Section Total" td={td_upper_total} />
-        <Row class="foot" label="Grand Total" td={td_total} />
+        <Row class={styles.foot} label="Lower Section Total" td={td_lower_total} />
+        <Row class={styles.foot} label="Upper Section Total" td={td_upper_total} />
+        <Row class={styles.foot} label="Grand Total" td={td_total} />
       </tbody>
     </table>
   )
@@ -385,6 +376,16 @@ function Row(props) {
           if (player_td) return <td>{player_td(player)}</td>;
         }}
       </For>
+    </tr>
+  );
+}
+
+function Row2(props) {
+  const { label, value, ...attrs } = props;
+  return (
+    <tr {...attrs}>
+      <th>{label}</th>
+      <For each={state.players}>{(player) => value(player)}</For>
     </tr>
   );
 }
@@ -422,7 +423,7 @@ function RollInput() {
       minlength={5} maxLength={5} size={5}
       value={state.roll_input}
       placeholder={roll_string()}
-      style={{ "margin-right": "2em" }}
+      style={{ "margin-top": "1em" }}
     />
   );
 }
@@ -441,6 +442,11 @@ function Roll() {
           <For each={roll()}>
             {(die) => <td onclick={() => toggleHold(die.index)}><Die face={die.face} hold={die.hold} /></td>}
           </For>
+          <td>
+            <button onClick={() => roll()} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
+            <br />
+            <RollInput />
+          </td>
         </tr>
       </tbody>
     </table>
