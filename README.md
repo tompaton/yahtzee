@@ -1,27 +1,32 @@
 # Yahtzee Scoresheet
 
-## TODO
+Yahtzee scoresheet/game/helper page.
 
-Solidjs Yahtzee score sheet
+* Play Yahtzee online with 1 or more players
+* Or you can directly enter dice rolls to score a game
+* Some hints are provided to help play an optimal game
 
-Suggest optimal row to score roll
- - rather than picking the highest score, it might be best to minimize the loss?
- - max 4s is 20, so a 16 there forfeits 4 possible points.
- - max chance is 30, so a 16 there forfeits 14 possible points.
+The page also stores a history of game scores.
 
-Suggest which dice to reroll
+Note that all data is stored locally on your device.
 
-Optimise for marginal value of score and collection of bonuses
+## Hints
 
-Show probabilities of outcomes from current dice
+* Probabilities  
+  Basic calculation of probability of rolling dice required to score on each row
+  based on current dice.  
+  This is naive because it doesn't consider re-rolls.
 
-Solidjs values/formulas for each score/total etc. show probability if row is still open, potential score when roll is complete, actual score once locked in.
+* Forfeitted points  
+  The best scoring row may in fact minimize the number of points forfeitted, 
+  rather than maximize the score itself.
 
-Keep a history of rolls with alternate could-have-been scenarios
+* Identifying the current roll  
+  Sometimes it's just helpful to have straights etc. automatically identified
+  so you don't inadvertently re-roll.
 
 
-## Usage
-
+## Development
 
 ```bash
 $ npm install # or pnpm install or yarn install
@@ -43,3 +48,19 @@ Your app is ready to be deployed!
 ## Deployment
 
 You can deploy the `dist` folder to any static host provider (netlify, surge, now, etc.)
+
+
+(c) 2024 Tom Paton  https://tompaton.com/
+
+
+# TODO
+
+- copyright/links to tompaton.com
+
+- allow selecting players from history
+- compute some stats in history for each player (min, max, average, quartiles...)
+- compute probabilities including re-rolls, hints at re-roll strategy
+
+- improved mobile/ipad layout
+  - separate page for all scores, only show current player
+  - hide filled rows
