@@ -5,7 +5,7 @@ import styles from './App.module.css';
 
 
 const [state, setState] = createStore({
-  roll: [1, 2, 3, 4, 5], roll_input: "",
+  roll: [null, null, null, null, null], roll_input: "",
   players: [
     {
       name: 'Tom', current: true,
@@ -95,7 +95,7 @@ function App() {
         <section>
           <nav>
             <RollInput />
-            <button onClick={() => roll()}>Roll</button>
+            <button onClick={() => roll()}>Random</button>
           </nav>
           <Roll />
         </section>
@@ -190,7 +190,7 @@ function isStraight(length) {
 }
 
 function isYahtzee(dice) {
-  return dice[0] == dice[1] && dice[1] == dice[2] && dice[2] == dice[3] && dice[3] == dice[4];
+  return dice[0] !== null && dice[0] == dice[1] && dice[1] == dice[2] && dice[2] == dice[3] && dice[3] == dice[4];
 }
 
 function yahtzeeBonus(rolls) {
@@ -249,7 +249,8 @@ function ScoreSheet() {
     if (player.scores[row].length == 0) {
       if (player.current)
         return <Maybe val={() => score({ [row]: [state.roll] })} />;
-      else return '';
+      else
+        return '';
     }
     return <Actual val={() => score(player.scores)} />;
   };
@@ -340,7 +341,8 @@ function RollInput() {
   const roll_string = () => {
     let s = "";
     for (const i of state.roll)
-      s += i.toString();
+      if (i !== null)
+        s += i.toString();
     return s;
   };
 
