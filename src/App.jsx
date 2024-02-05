@@ -10,7 +10,8 @@ const [state, setState] = createStore({
   hold: [false, true, true, false, false],
   players: [
     {
-      name: 'Tom', current: true,
+      name: 'Tom',
+      current: true,
       scores: {
         "ones": [[1, 1, 1, 2, 3]],
         "twos": [[2, 3, 4, 5, 6], [2, 2, 3, 4, 5]],
@@ -28,7 +29,8 @@ const [state, setState] = createStore({
       }
     },
     {
-      name: 'P2', current: false,
+      name: 'P2',
+      current: false,
       scores: {
         "ones": [],
         "twos": [],
@@ -99,12 +101,19 @@ function setScore(player, row, roll) {
     }
 
   clearRoll();
+  nextPlayer();
 }
 
 function clearRoll() {
   setState("roll_input", "");
   setState("roll", [null, null, null, null, null]);
   setState("hold", [false, false, false, false, false]);
+}
+
+function nextPlayer() {
+  // TODO: more than two players
+  for (let i = 0; i < state.players.length; i++)
+    setState("players", i, "current", !state.players[i].current);
 }
 
 function App() {
@@ -281,6 +290,13 @@ function ScoreSheet() {
     return <Actual val={() => score(player.scores)} />;
   };
 
+  const th_player = (player) => {
+    if (player.current)
+      return '*' + player.name + '*';
+    else
+      return player.name;
+  }
+
   const td_ones = (player) => td_value(player, 'ones', score_ones);
   const td_twos = (player) => td_value(player, 'twos', score_twos);
   const td_threes = (player) => td_value(player, 'threes', score_threes);
@@ -308,7 +324,7 @@ function ScoreSheet() {
   return (
     <table class={styles.scores}>
       <tbody>
-        <Row class="head" label="Upper Section" th={(player) => player.name} />
+        <Row class="head" label="Upper Section" th={th_player} />
         <Row label="Aces" td={td_ones} />
         <Row label="Twos" td={td_twos} />
         <Row label="Threes" td={td_threes} />
