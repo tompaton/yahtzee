@@ -107,6 +107,7 @@ table.scores tbody th:first-child {
 table.scores tbody td {
   width: 10em;
   padding: 5px 0px;
+  position: relative;
 }
 
 span.actual {
@@ -115,4 +116,16 @@ span.actual {
 
 span.maybe {
   color: orange;
+}
+
+span.maybe i {
+  display: none;
+}
+
+span.maybe:hover i {
+  display: inline-block;
+  position: absolute;
+  right: 0;
+  top: 0;
+  cursor: default;
 }

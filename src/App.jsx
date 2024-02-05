@@ -82,6 +82,23 @@ function setRoll(roll_string) {
   }
 }
 
+function setScore(player, row, roll) {
+  let rolls = Array.from(player.scores[row]);
+  rolls.push(Array.from(roll));
+
+  for (let i = 0; i < state.players.length; i++)
+    if (state.players[i] == player) {
+      setState("players", i, "scores", row, rolls);
+    }
+
+  clearRoll();
+}
+
+function clearRoll() {
+  setState("roll_input", "");
+  setState("roll", [null, null, null, null, null]);
+}
+
 function App() {
 
   return (
@@ -248,7 +265,8 @@ function ScoreSheet() {
   const td_value = (player, row, score) => {
     if (player.scores[row].length == 0) {
       if (player.current)
-        return <Maybe val={() => score({ [row]: [state.roll] })} />;
+        return <Maybe val={() => score({ [row]: [state.roll] })}
+          onclick={() => setScore(player, row, state.roll)} />;
       else
         return '';
     }
@@ -332,8 +350,16 @@ function Actual(props) {
 }
 
 function Maybe(props) {
-  const { val } = props;
-  return <span class={styles.maybe}>{val}</span>;
+  const { val, onclick } = props;
+  return (
+    <span
+      class={styles.maybe}
+      title="click to score roll against this row"
+      onclick={() => onclick()}>
+      {val}
+      <i>✏️</i>
+    </span>
+  );
 }
 
 
