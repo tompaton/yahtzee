@@ -32,33 +32,45 @@ const [state, setState] = createStore({
     {
       name: 'P2',
       current: false,
-      scores: {
-        "ones": [],
-        "twos": [],
-        "threes": [],
-        "fours": [],
-        "fives": [],
-        "sixes": [],
-        "triple": [],
-        "quad": [],
-        "fullhouse": [],
-        "small": [],
-        "large": [],
-        "yahtzee": [],
-        "chance": [],
-      }
+      scores: blankScores()
     }
   ]
 });
 
 
+function blankScores() {
+  return {
+    "ones": [],
+    "twos": [],
+    "threes": [],
+    "fours": [],
+    "fives": [],
+    "sixes": [],
+    "triple": [],
+    "quad": [],
+    "fullhouse": [],
+    "small": [],
+    "large": [],
+    "yahtzee": [],
+    "chance": [],
+  };
+}
+
 function zeroScores() {
-  let i = 0;
-  for (const player of state.players) {
-    for (const row in player.scores)
-      setState("players", i, "scores", row, []);
-    i++;
+  const current_names = Array.from(state.players, (player) => player.name).join(', ');
+  const names = prompt("Player names? (comma separated)", current_names);
+  if (names === null) return;
+
+  const newPlayer = (player) => {
+    return {
+      'name': player.trim(),
+      'current': false,
+      'scores': blankScores()
+    };
   }
+  setState('players', Array.from(names.split(','), newPlayer));
+  setState('players', 0, 'current', true);
+  clearRoll();
 }
 
 function toggleHold(i) {
@@ -117,9 +129,12 @@ function clearRoll() {
 }
 
 function nextPlayer() {
-  // TODO: more than two players
-  for (let i = 0; i < state.players.length; i++)
-    setState("players", i, "current", !state.players[i].current);
+  let i = 0;
+  for (; i < state.players.length; i++)
+    if (state.players[i].current) break;
+
+  setState("players", i, "current", false);
+  setState("players", (i + 1) % state.players.length, "current", true);
 }
 
 function App() {
