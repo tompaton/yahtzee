@@ -30,6 +30,20 @@ div.face {
   margin: 0em 0.5em 1em 0.5em;
 }
 
+div.hold {
+  border-color: greenyellow;
+}
+
+div.hold div.dot1,
+div.hold div.dot2,
+div.hold div.dot3,
+div.hold div.dot4,
+div.hold div.dot5,
+div.hold div.dot6,
+div.hold div.dot7 {
+  background-color: greenyellow;
+}
+
 div.dot1,
 div.dot2,
 div.dot3,

@@ -5,7 +5,9 @@ import styles from './App.module.css';
 
 
 const [state, setState] = createStore({
-  roll: [null, null, null, null, null], roll_input: "",
+  roll: [null, null, null, null, null],
+  roll_input: "",
+  hold: [false, true, true, false, false],
   players: [
     {
       name: 'Tom', current: true,
@@ -56,9 +58,14 @@ function zeroScores() {
   }
 }
 
+function toggleHold(i) {
+  setState("hold", i, !state.hold[i]);
+}
+
 function roll() {
   for (let i = 0; i < 5; i++)
-    setState("roll", i, Math.ceil(6.0 * Math.random()));
+    if (!state.hold[i])
+      setState("roll", i, Math.ceil(6.0 * Math.random()));
 }
 
 function setRoll(roll_string) {
@@ -97,6 +104,7 @@ function setScore(player, row, roll) {
 function clearRoll() {
   setState("roll_input", "");
   setState("roll", [null, null, null, null, null]);
+  setState("hold", [false, false, false, false, false]);
 }
 
 function App() {
@@ -383,12 +391,18 @@ function RollInput() {
 }
 
 function Roll() {
+  const roll = () => {
+    const result = [];
+    for (let i = 0; i < 5; i++)
+      result.push({ 'index': i, 'face': state.roll[i], 'hold': state.hold[i] });
+    return result;
+  };
   return (
     <table>
       <tbody>
         <tr>
-          <For each={state.roll}>
-            {(die) => <td><Die face={die} /></td>}
+          <For each={roll()}>
+            {(die) => <td onclick={() => toggleHold(die.index)}><Die face={die.face} hold={die.hold} /></td>}
           </For>
         </tr>
       </tbody>
@@ -398,8 +412,12 @@ function Roll() {
 
 const DOTS = { 1: [7], 2: [3, 4], 3: [3, 4, 7], 4: [1, 3, 4, 6], 5: [1, 3, 4, 6, 7], 6: [1, 2, 3, 4, 5, 6] };
 function Die(props) {
-  const { face } = props;
-  return <div class={styles.face} title={face}><For each={DOTS[face]}>{(dot) => <div class={styles['dot' + dot]} />}</For></div>;
+  const { face, hold } = props;
+  return (
+    <div classList={{ [styles.face]: true, [styles.hold]: hold }} title={face}>
+      <For each={DOTS[face]}>{(dot) => <div class={styles['dot' + dot]} />}</For>
+    </div>
+  );
 }
 
 export default App;
