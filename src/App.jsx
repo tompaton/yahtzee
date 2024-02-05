@@ -8,6 +8,7 @@ const [state, setState] = createStore({
   roll: [null, null, null, null, null],
   roll_input: "",
   hold: [false, true, true, false, false],
+  rerolls: 3,
   players: [
     {
       name: 'Tom',
@@ -68,6 +69,10 @@ function roll() {
   for (let i = 0; i < 5; i++)
     if (!state.hold[i])
       setState("roll", i, Math.ceil(6.0 * Math.random()));
+
+  setState("rerolls", state.rerolls - 1);
+  if (state.rerolls == 0)
+    setState('hold', [true, true, true, true, true]);
 }
 
 function setRoll(roll_string) {
@@ -108,6 +113,7 @@ function clearRoll() {
   setState("roll_input", "");
   setState("roll", [null, null, null, null, null]);
   setState("hold", [false, false, false, false, false]);
+  setState("rerolls", 3);
 }
 
 function nextPlayer() {
