@@ -5,6 +5,9 @@
 Solidjs Yahtzee score sheet
 
 Suggest optimal row to score roll
+ - rather than picking the highest score, it might be best to minimize the loss?
+ - max 4s is 20, so a 16 there forfeits 4 possible points.
+ - max chance is 30, so a 16 there forfeits 14 possible points.
 
 Suggest which dice to reroll
 

@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { For } from "solid-js";
+import { For, Show } from "solid-js";
 
 import styles from './App.module.css';
 
@@ -77,7 +77,7 @@ function toggleHold(i) {
   setState("hold", i, !state.hold[i]);
 }
 
-function roll() {
+function rollDice() {
   for (let i = 0; i < 5; i++)
     if (!state.hold[i])
       setState("roll", i, Math.ceil(6.0 * Math.random()));
@@ -274,8 +274,8 @@ function ScoreSheet() {
   const score_upper_bonus = (scores) => { return score_upper_subtotal(scores) >= 63 ? 35 : 0 };
   const score_upper_total = (scores) => { return score_upper_subtotal(scores) + score_upper_bonus(scores) };
 
-  const score_triple = (scores) => totalAll(isTuple(3), scores["triple"]);
-  const score_quad = (scores) => totalAll(isTuple(4), scores["quad"]);
+  const score_triple = (scores) => totalAll(isTuple(3), scores.triple);
+  const score_quad = (scores) => totalAll(isTuple(4), scores.quad);
   const score_fullhouse = (scores) => totalIf(25, isFullHouse, scores.fullhouse);
   const score_small = (scores) => totalIf(30, isStraight(4), scores.small);
   const score_large = (scores) => totalIf(40, isStraight(5), scores.large);
@@ -296,97 +296,71 @@ function ScoreSheet() {
   };
   const score_total = (scores) => { return score_upper_total(scores) + score_lower_total(scores) };
 
-  const td_value = (player, row, score) => {
-    if (player.scores[row].length == 0) {
-      if (player.current)
-        return <Maybe val={() => score({ [row]: [state.roll] })}
-          onclick={() => setScore(player, row, state.roll)} />;
-      else
-        return '';
-    }
-    return <Actual val={() => score(player.scores)} />;
-  };
-
   const th_player = (player) => <th classList={{ [styles.current]: player.current }}>{player.name}</th>;
-
-  const td_ones = (player) => td_value(player, 'ones', score_ones);
-  const td_twos = (player) => td_value(player, 'twos', score_twos);
-  const td_threes = (player) => td_value(player, 'threes', score_threes);
-  const td_fours = (player) => td_value(player, 'fours', score_fours);
-  const td_fives = (player) => td_value(player, 'fives', score_fives);
-  const td_sixes = (player) => td_value(player, 'sixes', score_sixes);
-
-  const td_upper_subtotal = (player) => score_upper_subtotal(player.scores);
-  const td_upper_bonus = (player) => score_upper_bonus(player.scores);
-
-  const td_upper_total = (player) => score_upper_total(player.scores);
-
-  const td_triple = (player) => td_value(player, 'triple', score_triple);
-  const td_quad = (player) => td_value(player, 'quad', score_quad);
-  const td_fullhouse = (player) => td_value(player, 'fullhouse', score_fullhouse);
-  const td_small = (player) => td_value(player, 'small', score_small);
-  const td_large = (player) => td_value(player, 'large', score_large);
-  const td_yahtzee = (player) => td_value(player, 'yahtzee', score_yahtzee);
-  const td_chance = (player) => td_value(player, 'chance', score_chance);
-  const td_yahtzee_bonus = (player) => score_yahtzee_bonus(player.scores);
-
-  const td_lower_total = (player) => score_lower_total(player.scores);
-  const td_total = (player) => score_total(player.scores);
 
   return (
     <table class={styles.scores}>
       <tbody>
-        <Row2 class={styles.head} label="Upper Section" value={th_player} />
-        <Row label="Aces" td={td_ones} />
-        <Row label="Twos" td={td_twos} />
-        <Row label="Threes" td={td_threes} />
-        <Row label="Fours" td={td_fours} />
-        <Row label="Fives" td={td_fives} />
-        <Row label="Sixes" td={td_sixes} />
-        <Row class={styles.foot} label="Total" td={td_upper_subtotal} />
-        <Row class={styles.foot} label="Bonus" td={td_upper_bonus} />
-        <Row class={styles.foot} label="Total" td={td_upper_total} />
+        <Row class={styles.head} label="Upper Section" value={th_player} />
+        <InputRow label="Aces" value="ones" score={score_ones} />
+        <InputRow label="Twos" value="twos" score={score_twos} />
+        <InputRow label="Threes" value="threes" score={score_threes} />
+        <InputRow label="Fours" value="fours" score={score_fours} />
+        <InputRow label="Fives" value="fives" score={score_fives} />
+        <InputRow label="Sixes" value="sixes" score={score_sixes} />
+        <CalcRow label="Total" score={score_upper_subtotal} />
+        <CalcRow label="Bonus" score={score_upper_bonus} />
+        <CalcRow label="Total" score={score_upper_total} />
 
-        <Row class={styles.head} label="Lower Section" td={(player) => ''} />
-        <Row label="3 of a Kind" td={td_triple} />
-        <Row label="4 of a Kind" td={td_quad} />
-        <Row label="Full House" td={td_fullhouse} />
-        <Row label="Small Straight" td={td_small} />
-        <Row label="Large Straight" td={td_large} />
-        <Row label="YAHTZEE" td={td_yahtzee} />
-        <Row label="Chance" td={td_chance} />
-        <Row label="YAHTZEE BONUS" td={td_yahtzee_bonus} />
+        <Row class={styles.head} label="Lower Section" value={(player) => <td></td>} />
+        <InputRow label="3 of a Kind" value="triple" score={score_triple} />
+        <InputRow label="4 of a Kind" value="quad" score={score_quad} />
+        <InputRow label="Full House" value="fullhouse" score={score_fullhouse} />
+        <InputRow label="Small Straight" value="small" score={score_small} />
+        <InputRow label="Large Straight" value="large" score={score_large} />
+        <InputRow label="YAHTZEE" value="yahtzee" score={score_yahtzee} />
+        <InputRow label="Chance" value="chance" score={score_chance} />
+        <CalcRow label="YAHTZEE BONUS" score={score_yahtzee_bonus} />
 
-        <Row class={styles.foot} label="Lower Section Total" td={td_lower_total} />
-        <Row class={styles.foot} label="Upper Section Total" td={td_upper_total} />
-        <Row class={styles.foot} label="Grand Total" td={td_total} />
+        <CalcRow label="Lower Section Total" score={score_lower_total} />
+        <CalcRow label="Upper Section Total" score={score_upper_total} />
+        <CalcRow label="Grand Total" score={score_total} />
       </tbody>
     </table>
   )
 }
 
 function Row(props) {
-  const { label: label, th: player_th, td: player_td, ...attrs } = props;
-  return (
-    <tr {...attrs}>
-      <th>{label}</th>
-      <For each={state.players}>
-        {(player) => {
-          if (player_th) return <th>{player_th(player)}</th>;
-          if (player_td) return <td>{player_td(player)}</td>;
-        }}
-      </For>
-    </tr>
-  );
-}
-
-function Row2(props) {
   const { label, value, ...attrs } = props;
   return (
     <tr {...attrs}>
       <th>{label}</th>
       <For each={state.players}>{(player) => value(player)}</For>
     </tr>
+  );
+}
+
+function InputRow(props) {
+  const { label, value, score } = props;
+
+  return (
+    <Row label={label} value={(player) => <td>
+      <Show when={player.scores[value].length == 0 && player.current}>
+        <Maybe val={() => score({ [value]: [state.roll] })}
+          onclick={() => setScore(player, value, state.roll)} />
+      </Show>
+      <Show when={player.scores[value].length > 0}>
+        <Actual val={() => score(player.scores)} />
+      </Show>
+    </td>} />
+  );
+}
+
+function CalcRow(props) {
+  const { score, label } = props;
+
+  return (
+    <Row class={styles.foot} label={label} value={(player) => <td>{score(player.scores)}</td>} />
   );
 }
 
@@ -443,7 +417,7 @@ function Roll() {
             {(die) => <td onclick={() => toggleHold(die.index)}><Die face={die.face} hold={die.hold} /></td>}
           </For>
           <td>
-            <button onClick={() => roll()} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
+            <button onClick={() => rollDice()} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
             <br />
             <RollInput />
           </td>
