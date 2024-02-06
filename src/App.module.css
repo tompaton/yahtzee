@@ -124,7 +124,7 @@ table.scores tr th:first-child {
 }
 
 .current {
-  color: greenyellow;
+  background-color: #253115;
 }
 
 .foot th {

@@ -296,12 +296,16 @@ function ScoreSheet() {
   };
   const score_total = (scores) => { return score_upper_total(scores) + score_lower_total(scores) };
 
-  const th_player = (player) => <th classList={{ [styles.current]: player.current }}>{player.name}</th>;
-
   return (
     <table class={styles.scores}>
+      <colgroup>
+        <col />
+        <For each={state.players}>{(player) =>
+          <col classList={{ [styles.current]: player.current }} />
+        }</For>
+      </colgroup>
       <tbody>
-        <Row class={styles.head} label="Upper Section" value={th_player} />
+        <Row class={styles.head} label="Upper Section" value={(player) => <th>{player.name}</th>} />
         <InputRow label="Aces" value="ones" score={score_ones} />
         <InputRow label="Twos" value="twos" score={score_twos} />
         <InputRow label="Threes" value="threes" score={score_threes} />
