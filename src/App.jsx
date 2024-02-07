@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { For, Show } from "solid-js";
+import { For, Switch, Match } from "solid-js";
 
 import styles from './App.module.css';
 
@@ -348,15 +348,19 @@ function InputRow(props) {
   const { label, value, score } = props;
 
   return (
-    <Row label={label} value={(player) => <td>
-      <Show when={player.scores[value].length == 0 && player.current}>
-        <Maybe val={() => score({ [value]: [state.roll] })}
-          onclick={() => setScore(player, value, state.roll)} />
-      </Show>
-      <Show when={player.scores[value].length > 0}>
-        <Actual val={() => score(player.scores)} />
-      </Show>
-    </td>} />
+    <Row label={label} value={(player) => <Switch fallback={<td></td>}>
+      <Match when={player.scores[value].length == 0 && player.current}>
+        <td class={styles.maybe}
+          title="click to score roll against this row"
+          onclick={() => setScore(player, value, state.roll)}>
+          {score({ [value]: [state.roll] })}
+          <i>✏️</i>
+        </td>
+      </Match>
+      <Match when={player.scores[value].length > 0}>
+        <td class={styles.actual}>{score(player.scores)}</td>
+      </Match>
+    </Switch>} />
   );
 }
 
@@ -367,25 +371,6 @@ function CalcRow(props) {
     <Row class={styles.foot} label={label} value={(player) => <td>{score(player.scores)}</td>} />
   );
 }
-
-function Actual(props) {
-  const { val } = props;
-  return <span class={styles.actual}>{val}</span>;
-}
-
-function Maybe(props) {
-  const { val, onclick } = props;
-  return (
-    <span
-      class={styles.maybe}
-      title="click to score roll against this row"
-      onclick={() => onclick()}>
-      {val}
-      <i>✏️</i>
-    </span>
-  );
-}
-
 
 function RollInput() {
   const roll_string = () => {

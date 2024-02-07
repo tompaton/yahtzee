@@ -143,22 +143,22 @@ table.scores tbody td {
   position: relative;
 }
 
-span.actual {
+td.actual {
   color: greenyellow;
 }
 
-span.maybe {
+td.maybe {
   color: orange;
 }
 
-span.maybe i {
+td.maybe i {
   display: none;
 }
 
-span.maybe:hover i {
+td.maybe:hover i {
   display: inline-block;
   position: absolute;
-  right: 0;
-  top: 0;
+  left: 0.5em;
+  top: 0.25em;
   cursor: default;
 }
