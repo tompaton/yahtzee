@@ -109,6 +109,22 @@ function setRoll(roll_string) {
 }
 
 function setScore(player, row, roll) {
+  // special case for yahtzee bonus:
+  // first yahtzee can be filled in to any row you like, but putting it anywhere
+  // other than the yahtzee row would be a bit unusual...
+  // subsequent yahtzee gets scored in any open row (though it seems in some
+  // variants you must do the upper section first)
+  // but we also want to record the bonus.
+  if (isYahtzee(roll) && player.scores.yahtzee.length && isYahtzee(player.scores.yahtzee[0])) {
+    appendRoll(player, 'yahtzee', roll);
+  }
+
+  appendRoll(player, row, roll);
+  clearRoll();
+  nextPlayer();
+}
+
+function appendRoll(player, row, roll) {
   let rolls = Array.from(player.scores[row]);
   rolls.push(Array.from(roll));
 
@@ -116,9 +132,6 @@ function setScore(player, row, roll) {
     if (state.players[i] == player) {
       setState("players", i, "scores", row, rolls);
     }
-
-  clearRoll();
-  nextPlayer();
 }
 
 function clearRoll() {
@@ -248,7 +261,7 @@ function yahtzeeBonus(rolls) {
   let total = 0;
   for (const roll of rolls)
     if (isYahtzee(roll)) total += 100;
-  return Math.max(0, total - 100);
+  return Math.min(Math.max(0, total - 100), 300);
 }
 
 function isChance(dice) {
