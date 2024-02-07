@@ -7,30 +7,16 @@ import styles from './App.module.css';
 const [state, setState] = createStore({
   roll: [null, null, null, null, null],
   roll_input: "",
-  hold: [false, true, true, false, false],
+  hold: [false, false, false, false, false],
   rerolls: 3,
   players: [
     {
-      name: 'Tom',
+      name: 'Player One',
       current: true,
-      scores: {
-        "ones": [[1, 1, 1, 2, 3]],
-        "twos": [[2, 3, 4, 5, 6], [2, 2, 3, 4, 5]],
-        "threes": [[5, 5, 5, 5, 5]],
-        "fours": [[4, 4, 4, 2, 1]],
-        "fives": [[5, 5, 5, 5, 5]],
-        "sixes": [[6, 6, 6, 6, 1]],
-        "triple": [[3, 3, 3, 2, 2]],
-        "quad": [[3, 3, 3, 2, 2]],
-        "fullhouse": [[3, 3, 3, 2, 2]],
-        "small": [[1, 3, 4, 5, 6]],
-        "large": [[2, 3, 4, 5, 6]],
-        "yahtzee": [[6, 6, 6, 6, 6], [5, 5, 5, 5, 5]],
-        "chance": [[1, 1, 1, 1, 1]],
-      }
+      scores: blankScores()
     },
     {
-      name: 'P2',
+      name: 'Player Two',
       current: false,
       scores: blankScores()
     }
@@ -78,6 +64,9 @@ function toggleHold(i) {
 }
 
 function rollDice() {
+  if (state.rerolls == 0)
+    return;
+
   for (let i = 0; i < 5; i++)
     if (!state.hold[i])
       setState("roll", i, Math.ceil(6.0 * Math.random()));
