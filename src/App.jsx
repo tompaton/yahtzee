@@ -43,8 +43,7 @@ function blankScores() {
 }
 
 function zeroScores() {
-  const current_names = Array.from(state.players, (player) => player.name).join(', ');
-  const names = prompt("Player names? (comma separated)", current_names);
+  const names = inputNames();
   if (names === null) return;
 
   const newPlayer = (player) => {
@@ -54,12 +53,28 @@ function zeroScores() {
       'scores': blankScores()
     };
   }
-  setState('players', Array.from(names.split(','), newPlayer));
+  setState('players', Array.from(names, newPlayer));
   setState('players', 0, 'current', true);
   clearRoll();
 }
 
+function inputNames() {
+  const current_names = Array.from(state.players, (player) => player.name).join(', ');
+  const new_names = prompt("Player names? (comma separated)", current_names);
+  if (new_names === null) return null;
+  return new_names.split(',');
+}
+
+function renamePlayers() {
+  const names = inputNames();
+  if (names === null) return;
+
+  for (let i = 0; i < names.length && i < state.players.length; i++)
+    setState('players', i, 'name', names[i].trim());
+}
+
 function toggleHold(i) {
+  if (state.roll[i] === null) return;
   setState("hold", i, !state.hold[i]);
 }
 
@@ -307,7 +322,8 @@ function ScoreSheet() {
         }</For>
       </colgroup>
       <tbody>
-        <Row class={styles.head} label="Upper Section" value={(player) => <th>{player.name}</th>} />
+        <Row class={styles.head} label="Upper Section"
+          value={(player) => <th title="click to rename players" onclick={renamePlayers}>{player.name}</th>} />
         <InputRow label="Aces" value="ones" score={score_ones} />
         <InputRow label="Twos" value="twos" score={score_twos} />
         <InputRow label="Threes" value="threes" score={score_threes} />
@@ -422,7 +438,7 @@ const DOTS = { 1: [7], 2: [3, 4], 3: [3, 4, 7], 4: [1, 3, 4, 6], 5: [1, 3, 4, 6,
 function Die(props) {
   const { face, hold } = props;
   return (
-    <div classList={{ [styles.face]: true, [styles.hold]: hold }} title={face}>
+    <div classList={{ [styles.face]: true, [styles.hold]: hold }} title={face === null ? "" : face + (hold ? " (click to allow re-roll)" : " (click to hold)")}>
       <For each={DOTS[face]}>{(dot) => <div class={styles['dot' + dot]} />}</For>
     </div>
   );
