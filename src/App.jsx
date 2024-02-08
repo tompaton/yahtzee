@@ -159,6 +159,7 @@ function App() {
   return (
     <div class={styles.App}>
       <header class={styles.header}>
+        <nav></nav>
         <h1>
           Yahtzee Scoresheet
         </h1>
