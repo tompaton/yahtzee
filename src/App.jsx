@@ -278,46 +278,95 @@ function isChance(dice) {
   return true;
 }
 
+function scoreOnes(scores) {
+  return totalJust(1, scores.ones);
+}
+
+function scoreTwos(scores) {
+  return totalJust(2, scores.twos);
+}
+
+function scoreThrees(scores) {
+  return totalJust(3, scores.threes);
+}
+
+function scoreFours(scores) {
+  return totalJust(4, scores.fours);
+}
+
+function scoreFives(scores) {
+  return totalJust(5, scores.fives);
+}
+
+function scoreSixes(scores) {
+  return totalJust(6, scores.sixes);
+}
+
+function scoreUpperSubtotal(scores) {
+  return scoreOnes(scores)
+    + scoreTwos(scores)
+    + scoreThrees(scores)
+    + scoreFours(scores)
+    + scoreFives(scores)
+    + scoreSixes(scores);
+}
+
+function scoreUpperBonus(scores) {
+  return scoreUpperSubtotal(scores) >= 63 ? 35 : 0;
+}
+
+function scoreUpperTotal(scores) {
+  return scoreUpperSubtotal(scores) + scoreUpperBonus(scores);
+}
+
+function scoreTriple(scores) {
+  return totalAll(isTuple(3), scores.triple);
+}
+
+function scoreQuad(scores) {
+  return totalAll(isTuple(4), scores.quad);
+}
+
+function scoreFullhouse(scores) {
+  return totalIf(25, isFullHouse, scores.fullhouse);
+}
+
+function scoreSmall(scores) {
+  return totalIf(30, isStraight(4), scores.small);
+}
+
+function scoreLarge(scores) {
+  return totalIf(40, isStraight(5), scores.large);
+}
+
+function scoreYahtzee(scores) {
+  return totalIf(50, isYahtzee, scores.yahtzee);
+}
+
+function scoreChance(scores) {
+  return totalAll(isChance, scores.chance);
+}
+
+function scoreYahtzeeBonus(scores) {
+  return yahtzeeBonus(scores.yahtzee);
+}
+
+function scoreLowerTotal(scores) {
+  return scoreTriple(scores)
+    + scoreQuad(scores)
+    + scoreFullhouse(scores)
+    + scoreSmall(scores)
+    + scoreLarge(scores)
+    + scoreYahtzee(scores)
+    + scoreChance(scores)
+    + scoreYahtzeeBonus(scores);
+}
+
+function scoreTotal(scores) {
+  return scoreUpperTotal(scores) + scoreLowerTotal(scores);
+}
+
 function ScoreSheet() {
-  const score_ones = (scores) => totalJust(1, scores.ones);
-  const score_twos = (scores) => totalJust(2, scores.twos);
-  const score_threes = (scores) => totalJust(3, scores.threes);
-  const score_fours = (scores) => totalJust(4, scores.fours);
-  const score_fives = (scores) => totalJust(5, scores.fives);
-  const score_sixes = (scores) => totalJust(6, scores.sixes);
-
-  const score_upper_subtotal = (scores) => {
-    return score_ones(scores)
-      + score_twos(scores)
-      + score_threes(scores)
-      + score_fours(scores)
-      + score_fives(scores)
-      + score_sixes(scores);
-  };
-  const score_upper_bonus = (scores) => { return score_upper_subtotal(scores) >= 63 ? 35 : 0 };
-  const score_upper_total = (scores) => { return score_upper_subtotal(scores) + score_upper_bonus(scores) };
-
-  const score_triple = (scores) => totalAll(isTuple(3), scores.triple);
-  const score_quad = (scores) => totalAll(isTuple(4), scores.quad);
-  const score_fullhouse = (scores) => totalIf(25, isFullHouse, scores.fullhouse);
-  const score_small = (scores) => totalIf(30, isStraight(4), scores.small);
-  const score_large = (scores) => totalIf(40, isStraight(5), scores.large);
-  const score_yahtzee = (scores) => totalIf(50, isYahtzee, scores.yahtzee);
-  const score_chance = (scores) => totalAll(isChance, scores.chance);
-
-  const score_yahtzee_bonus = (scores) => yahtzeeBonus(scores.yahtzee);
-
-  const score_lower_total = (scores) => {
-    return score_triple(scores)
-      + score_quad(scores)
-      + score_fullhouse(scores)
-      + score_small(scores)
-      + score_large(scores)
-      + score_yahtzee(scores)
-      + score_chance(scores)
-      + score_yahtzee_bonus(scores);
-  };
-  const score_total = (scores) => { return score_upper_total(scores) + score_lower_total(scores) };
 
   return (
     <table class={styles.scores}>
@@ -331,29 +380,29 @@ function ScoreSheet() {
       <tbody>
         <Row class={styles.head} label="Upper Section" forfeit=""
           value={(player) => <th title="click to rename players" onclick={renamePlayers}>{player.name}</th>} />
-        <InputRow label="Aces" value="ones" score={score_ones} />
-        <InputRow label="Twos" value="twos" score={score_twos} />
-        <InputRow label="Threes" value="threes" score={score_threes} />
-        <InputRow label="Fours" value="fours" score={score_fours} />
-        <InputRow label="Fives" value="fives" score={score_fives} />
-        <InputRow label="Sixes" value="sixes" score={score_sixes} />
-        <CalcRow label="Total" score={score_upper_subtotal} />
-        <CalcRow label="Bonus" score={score_upper_bonus} />
-        <CalcRow label="Total" score={score_upper_total} />
+        <InputRow label="Aces" value="ones" score={scoreOnes} />
+        <InputRow label="Twos" value="twos" score={scoreTwos} />
+        <InputRow label="Threes" value="threes" score={scoreThrees} />
+        <InputRow label="Fours" value="fours" score={scoreFours} />
+        <InputRow label="Fives" value="fives" score={scoreFives} />
+        <InputRow label="Sixes" value="sixes" score={scoreSixes} />
+        <CalcRow label="Total" score={scoreUpperSubtotal} />
+        <CalcRow label="Bonus" score={scoreUpperBonus} />
+        <CalcRow label="Total" score={scoreUpperTotal} />
 
         <Row class={styles.head} label="Lower Section" value={(player) => <td></td>} forfeit="" />
-        <InputRow label="3 of a Kind" value="triple" score={score_triple} />
-        <InputRow label="4 of a Kind" value="quad" score={score_quad} />
-        <InputRow label="Full House" value="fullhouse" score={score_fullhouse} />
-        <InputRow label="Small Straight" value="small" score={score_small} />
-        <InputRow label="Large Straight" value="large" score={score_large} />
-        <InputRow label="YAHTZEE" value="yahtzee" score={score_yahtzee} />
-        <InputRow label="Chance" value="chance" score={score_chance} />
-        <CalcRow label="YAHTZEE BONUS" score={score_yahtzee_bonus} />
+        <InputRow label="3 of a Kind" value="triple" score={scoreTriple} />
+        <InputRow label="4 of a Kind" value="quad" score={scoreQuad} />
+        <InputRow label="Full House" value="fullhouse" score={scoreFullhouse} />
+        <InputRow label="Small Straight" value="small" score={scoreSmall} />
+        <InputRow label="Large Straight" value="large" score={scoreLarge} />
+        <InputRow label="YAHTZEE" value="yahtzee" score={scoreYahtzee} />
+        <InputRow label="Chance" value="chance" score={scoreChance} />
+        <CalcRow label="YAHTZEE BONUS" score={scoreYahtzeeBonus} />
 
-        <CalcRow label="Lower Section Total" score={score_lower_total} />
-        <CalcRow label="Upper Section Total" score={score_upper_total} />
-        <CalcRow label="Grand Total" score={score_total} />
+        <CalcRow label="Lower Section Total" score={scoreLowerTotal} />
+        <CalcRow label="Upper Section Total" score={scoreUpperTotal} />
+        <CalcRow label="Grand Total" score={scoreTotal} />
       </tbody>
     </table>
   )
