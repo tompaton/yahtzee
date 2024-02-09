@@ -271,123 +271,38 @@ function yahtzeeBonus(rolls) {
   let total = 0;
   for (const roll of rolls)
     if (isYahtzee(roll)) total += 100;
-  return Math.min(Math.max(0, total - 100), 300);
+  return Math.max(0, total - 100);
 }
 
 function isChance(dice) {
   return true;
 }
 
-function scoreOnes(scores) {
-  return totalJust(1, scores.ones);
-}
-
-function scoreTwos(scores) {
-  return totalJust(2, scores.twos);
-}
-
-function scoreThrees(scores) {
-  return totalJust(3, scores.threes);
-}
-
-function scoreFours(scores) {
-  return totalJust(4, scores.fours);
-}
-
-function scoreFives(scores) {
-  return totalJust(5, scores.fives);
-}
-
-function scoreSixes(scores) {
-  return totalJust(6, scores.sixes);
-}
-
-function scoreUpperSubtotal(scores) {
-  return scoreOnes(scores)
-    + scoreTwos(scores)
-    + scoreThrees(scores)
-    + scoreFours(scores)
-    + scoreFives(scores)
-    + scoreSixes(scores);
-}
-
-function scoreUpperBonus(scores) {
-  return scoreUpperSubtotal(scores) >= 63 ? 35 : 0;
-}
-
-function scoreUpperTotal(scores) {
-  return scoreUpperSubtotal(scores) + scoreUpperBonus(scores);
-}
-
-function scoreTriple(scores) {
-  return totalAll(isTuple(3), scores.triple);
-}
-
-function scoreQuad(scores) {
-  return totalAll(isTuple(4), scores.quad);
-}
-
-function scoreFullhouse(scores) {
-  return totalIf(25, isFullHouse, scores.fullhouse);
-}
-
-function scoreSmall(scores) {
-  return totalIf(30, isStraight(4), scores.small);
-}
-
-function scoreLarge(scores) {
-  return totalIf(40, isStraight(5), scores.large);
-}
-
-function scoreYahtzee(scores) {
-  return totalIf(50, isYahtzee, scores.yahtzee);
-}
-
-function scoreChance(scores) {
-  return totalAll(isChance, scores.chance);
-}
-
-function scoreYahtzeeBonus(scores) {
-  return yahtzeeBonus(scores.yahtzee);
-}
-
-function scoreLowerTotal(scores) {
-  return scoreTriple(scores)
-    + scoreQuad(scores)
-    + scoreFullhouse(scores)
-    + scoreSmall(scores)
-    + scoreLarge(scores)
-    + scoreYahtzee(scores)
-    + scoreChance(scores)
-    + scoreYahtzeeBonus(scores);
-}
-
-function scoreTotal(scores) {
-  return scoreUpperTotal(scores) + scoreLowerTotal(scores);
-}
-
 function allScores(scores) {
-  return {
-    "ones": scoreOnes(scores),
-    "twos": scoreTwos(scores),
-    "threes": scoreThrees(scores),
-    "fours": scoreFours(scores),
-    "fives": scoreFives(scores),
-    "sixes": scoreSixes(scores),
-    "upper_subtotal": scoreUpperSubtotal(scores),
-    "upper_bonus": scoreUpperBonus(scores),
-    "upper_total": scoreUpperTotal(scores),
-    "triple": scoreTriple(scores),
-    "quad": scoreQuad(scores),
-    "fullhouse": scoreFullhouse(scores),
-    "small": scoreSmall(scores),
-    "large": scoreLarge(scores),
-    "yahtzee": scoreYahtzee(scores),
-    "yahtzee_bonus": scoreYahtzeeBonus(scores),
-    "chance": scoreChance(scores),
-    "lower_total": scoreLowerTotal(scores),
-    "total": scoreTotal(scores)
+  const result = {
+    "ones": totalJust(1, scores.ones),
+    "twos": totalJust(2, scores.twos),
+    "threes": totalJust(3, scores.threes),
+    "fours": totalJust(4, scores.fours),
+    "fives": totalJust(5, scores.fives),
+    "sixes": totalJust(6, scores.sixes),
+    "triple": totalAll(isTuple(3), scores.triple),
+    "quad": totalAll(isTuple(4), scores.quad),
+    "fullhouse": totalIf(25, isFullHouse, scores.fullhouse),
+    "small": totalIf(30, isStraight(4), scores.small),
+    "large": totalIf(40, isStraight(5), scores.large),
+    "yahtzee": totalIf(50, isYahtzee, scores.yahtzee),
+    "yahtzee_bonus": yahtzeeBonus(scores.yahtzee),
+    "chance": totalAll(isChance, scores.chance)
   };
+
+  result.upper_subtotal = result.ones + result.twos + result.threes + result.fours + result.fives + result.sixes;
+  result.upper_bonus = result.upper_subtotal >= 63 ? 35 : 0;
+  result.upper_total = result.upper_subtotal + result.upper_bonus;
+  result.lower_total = result.triple + result.quad + result.fullhouse + result.small + result.large + result.yahtzee + result.chance + result.yahtzee_bonus;
+  result.total = result.upper_total + result.lower_total;
+
+  return result;
 }
 
 const MAX = {
