@@ -406,13 +406,26 @@ const MAX = {
   "chance": 30,
 };
 
-function currentPlayerScored(value) {
-  for (let player of state.players)
-    if (player.current && player.scores[value].length > 0) return true;
-  return false;
+function currentPlayerIndex() {
+  let i = 0;
+  for (let player of state.players) {
+    if (player.current) return i;
+    i++;
+  }
+  // during nextPlayer() current will be false for all players for a moment
+  return 0;
 }
 
 function ScoreSheet() {
+
+  const scored = createMemo(() => {
+    return Array.from(state.players, (player) => {
+      const result = {};
+      for (let value in blankScores())
+        result[value] = player.scores[value].length > 0;
+      return result;
+    });
+  });
 
   const actual_scores = createMemo(() => {
     return Array.from(state.players, (player) => allScores(player.scores));
@@ -447,24 +460,24 @@ function ScoreSheet() {
       <tbody>
         <Row class={styles.head} label="Upper Section" forfeit=""
           value={(player) => <th title="click to rename players" onclick={renamePlayers}>{player.name}</th>} />
-        <InputRow label="Aces" value="ones" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Twos" value="twos" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Threes" value="threes" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Fours" value="fours" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Fives" value="fives" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Sixes" value="sixes" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Aces" value="ones" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Twos" value="twos" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Threes" value="threes" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Fours" value="fours" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Fives" value="fives" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Sixes" value="sixes" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
         <CalcRow label="Total" value="upper_subtotal" actual={actual_scores} />
         <CalcRow label="Bonus" value="upper_bonus" actual={actual_scores} />
         <CalcRow label="Total" value="upper_total" actual={actual_scores} />
 
         <Row class={styles.head} label="Lower Section" value={(player) => <td></td>} forfeit="" />
-        <InputRow label="3 of a Kind" value="triple" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="4 of a Kind" value="quad" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Full House" value="fullhouse" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Small Straight" value="small" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Large Straight" value="large" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="YAHTZEE" value="yahtzee" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
-        <InputRow label="Chance" value="chance" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="3 of a Kind" value="triple" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="4 of a Kind" value="quad" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Full House" value="fullhouse" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Small Straight" value="small" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Large Straight" value="large" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="YAHTZEE" value="yahtzee" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Chance" value="chance" scored={scored} actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
         <CalcRow label="YAHTZEE BONUS" value="yahtzee_bonus" actual={actual_scores} />
 
         <CalcRow label="Lower Section Total" value="lower_total" actual={actual_scores} />
@@ -487,11 +500,11 @@ function Row(props) {
 }
 
 function InputRow(props) {
-  const { label, value, actual, maybe, forfeit } = props;
+  const { label, value, scored, actual, maybe, forfeit } = props;
 
   return (
     <Row label={label} value={(player, index) => <Switch fallback={<td></td>}>
-      <Match when={player.scores[value].length == 0 && player.current}>
+      <Match when={!scored()[index][value] && player.current}>
         <td class={styles.maybe}
           title="click to score roll against this row"
           onclick={() => setScore(player, value, state.roll)}>
@@ -499,11 +512,11 @@ function InputRow(props) {
           <i>✏️</i>
         </td>
       </Match>
-      <Match when={player.scores[value].length > 0}>
+      <Match when={scored()[index][value]}>
         <td class={styles.actual}>{actual()[index][value]}</td>
       </Match>
     </Switch>}
-      forfeit={<Show when={!currentPlayerScored(value)}>{forfeit()[value]}</Show>} />
+      forfeit={<Show when={!scored()[currentPlayerIndex()][value]}>{forfeit()[value]}</Show>} />
   );
 }
 
