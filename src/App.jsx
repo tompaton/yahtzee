@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { For, Switch, Match } from "solid-js";
+import { For, Show, Switch, Match } from "solid-js";
 
 import styles from './App.module.css';
 
@@ -9,6 +9,7 @@ const [state, setState] = createStore({
   roll_input: "",
   hold: [false, false, false, false, false],
   rerolls: 3,
+  show_forfeit: false,
   players: [
     {
       name: 'Player One',
@@ -173,6 +174,10 @@ function App() {
         </section>
         <section>
           <ScoreSheet />
+          <nav>
+            <input type="checkbox" id="show_forfeit" value={state.show_forfeit} onclick={() => setState("show_forfeit", !state.show_forfeit)} />
+            <label for="show_forfeit">Show points forfeitted for row?</label>
+          </nav>
         </section>
       </article>
     </div>
@@ -321,9 +326,10 @@ function ScoreSheet() {
         <For each={state.players}>{(player) =>
           <col classList={{ [styles.current]: player.current }} />
         }</For>
+        <Show when={state.show_forfeit}><col /></Show>
       </colgroup>
       <tbody>
-        <Row class={styles.head} label="Upper Section"
+        <Row class={styles.head} label="Upper Section" forfeit=""
           value={(player) => <th title="click to rename players" onclick={renamePlayers}>{player.name}</th>} />
         <InputRow label="Aces" value="ones" score={score_ones} />
         <InputRow label="Twos" value="twos" score={score_twos} />
@@ -335,7 +341,7 @@ function ScoreSheet() {
         <CalcRow label="Bonus" score={score_upper_bonus} />
         <CalcRow label="Total" score={score_upper_total} />
 
-        <Row class={styles.head} label="Lower Section" value={(player) => <td></td>} />
+        <Row class={styles.head} label="Lower Section" value={(player) => <td></td>} forfeit="" />
         <InputRow label="3 of a Kind" value="triple" score={score_triple} />
         <InputRow label="4 of a Kind" value="quad" score={score_quad} />
         <InputRow label="Full House" value="fullhouse" score={score_fullhouse} />
@@ -354,13 +360,36 @@ function ScoreSheet() {
 }
 
 function Row(props) {
-  const { label, value, ...attrs } = props;
+  const { label, value, forfeit, ...attrs } = props;
   return (
     <tr {...attrs}>
       <th>{label}</th>
       <For each={state.players}>{(player) => value(player)}</For>
+      <Show when={state.show_forfeit}><td>{forfeit}</td></Show>
     </tr>
   );
+}
+
+const MAX = {
+  "ones": 5,
+  "twos": 10,
+  "threes": 15,
+  "fours": 20,
+  "fives": 25,
+  "sixes": 30,
+  "triple": 30,
+  "quad": 30,
+  "fullhouse": 25,
+  "small": 30,
+  "large": 40,
+  "yahtzee": 50,
+  "chance": 30,
+};
+
+function currentPlayerScored(value) {
+  for (let player of state.players)
+    if (player.current && player.scores[value].length > 0) return true;
+  return false;
 }
 
 function InputRow(props) {
@@ -379,7 +408,8 @@ function InputRow(props) {
       <Match when={player.scores[value].length > 0}>
         <td class={styles.actual}>{score(player.scores)}</td>
       </Match>
-    </Switch>} />
+    </Switch>}
+      forfeit={<Show when={!currentPlayerScored(value)}>{MAX[value] - score({ [value]: [state.roll] })}</Show>} />
   );
 }
 
@@ -387,7 +417,7 @@ function CalcRow(props) {
   const { score, label } = props;
 
   return (
-    <Row class={styles.foot} label={label} value={(player) => <td>{score(player.scores)}</td>} />
+    <Row class={styles.foot} label={label} value={(player) => <td>{score(player.scores)}</td>} forfeit="" />
   );
 }
 
