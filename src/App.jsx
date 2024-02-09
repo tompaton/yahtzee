@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { For, Show, Switch, Match } from "solid-js";
+import { createMemo, For, Show, Switch, Match } from "solid-js";
 
 import styles from './App.module.css';
 
@@ -366,57 +366,28 @@ function scoreTotal(scores) {
   return scoreUpperTotal(scores) + scoreLowerTotal(scores);
 }
 
-function ScoreSheet() {
-
-  return (
-    <table class={styles.scores}>
-      <colgroup>
-        <col />
-        <For each={state.players}>{(player) =>
-          <col classList={{ [styles.current]: player.current }} />
-        }</For>
-        <Show when={state.show_forfeit}><col /></Show>
-      </colgroup>
-      <tbody>
-        <Row class={styles.head} label="Upper Section" forfeit=""
-          value={(player) => <th title="click to rename players" onclick={renamePlayers}>{player.name}</th>} />
-        <InputRow label="Aces" value="ones" score={scoreOnes} />
-        <InputRow label="Twos" value="twos" score={scoreTwos} />
-        <InputRow label="Threes" value="threes" score={scoreThrees} />
-        <InputRow label="Fours" value="fours" score={scoreFours} />
-        <InputRow label="Fives" value="fives" score={scoreFives} />
-        <InputRow label="Sixes" value="sixes" score={scoreSixes} />
-        <CalcRow label="Total" score={scoreUpperSubtotal} />
-        <CalcRow label="Bonus" score={scoreUpperBonus} />
-        <CalcRow label="Total" score={scoreUpperTotal} />
-
-        <Row class={styles.head} label="Lower Section" value={(player) => <td></td>} forfeit="" />
-        <InputRow label="3 of a Kind" value="triple" score={scoreTriple} />
-        <InputRow label="4 of a Kind" value="quad" score={scoreQuad} />
-        <InputRow label="Full House" value="fullhouse" score={scoreFullhouse} />
-        <InputRow label="Small Straight" value="small" score={scoreSmall} />
-        <InputRow label="Large Straight" value="large" score={scoreLarge} />
-        <InputRow label="YAHTZEE" value="yahtzee" score={scoreYahtzee} />
-        <InputRow label="Chance" value="chance" score={scoreChance} />
-        <CalcRow label="YAHTZEE BONUS" score={scoreYahtzeeBonus} />
-
-        <CalcRow label="Lower Section Total" score={scoreLowerTotal} />
-        <CalcRow label="Upper Section Total" score={scoreUpperTotal} />
-        <CalcRow label="Grand Total" score={scoreTotal} />
-      </tbody>
-    </table>
-  )
-}
-
-function Row(props) {
-  const { label, value, forfeit, ...attrs } = props;
-  return (
-    <tr {...attrs}>
-      <th>{label}</th>
-      <For each={state.players}>{(player) => value(player)}</For>
-      <Show when={state.show_forfeit}><td>{forfeit}</td></Show>
-    </tr>
-  );
+function allScores(scores) {
+  return {
+    "ones": scoreOnes(scores),
+    "twos": scoreTwos(scores),
+    "threes": scoreThrees(scores),
+    "fours": scoreFours(scores),
+    "fives": scoreFives(scores),
+    "sixes": scoreSixes(scores),
+    "upper_subtotal": scoreUpperSubtotal(scores),
+    "upper_bonus": scoreUpperBonus(scores),
+    "upper_total": scoreUpperTotal(scores),
+    "triple": scoreTriple(scores),
+    "quad": scoreQuad(scores),
+    "fullhouse": scoreFullhouse(scores),
+    "small": scoreSmall(scores),
+    "large": scoreLarge(scores),
+    "yahtzee": scoreYahtzee(scores),
+    "yahtzee_bonus": scoreYahtzeeBonus(scores),
+    "chance": scoreChance(scores),
+    "lower_total": scoreLowerTotal(scores),
+    "total": scoreTotal(scores)
+  };
 }
 
 const MAX = {
@@ -441,32 +412,106 @@ function currentPlayerScored(value) {
   return false;
 }
 
-function InputRow(props) {
-  const { label, value, score } = props;
+function ScoreSheet() {
+
+  const actual_scores = createMemo(() => {
+    return Array.from(state.players, (player) => allScores(player.scores));
+  });
+
+  const maybe_scores = createMemo(() => {
+    const scores = {};
+    for (let value in blankScores())
+      scores[value] = [state.roll];
+    return allScores(scores);
+  });
+
+  const forfeit_scores = createMemo(() => {
+    const forfeit = {};
+
+    for (const [value, score] of Object.entries(maybe_scores())) {
+      forfeit[value] = MAX[value] - score;
+    }
+
+    return forfeit;
+  });
 
   return (
-    <Row label={label} value={(player) => <Switch fallback={<td></td>}>
+    <table class={styles.scores}>
+      <colgroup>
+        <col />
+        <For each={state.players}>{(player) =>
+          <col classList={{ [styles.current]: player.current }} />
+        }</For>
+        <Show when={state.show_forfeit}><col /></Show>
+      </colgroup>
+      <tbody>
+        <Row class={styles.head} label="Upper Section" forfeit=""
+          value={(player) => <th title="click to rename players" onclick={renamePlayers}>{player.name}</th>} />
+        <InputRow label="Aces" value="ones" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Twos" value="twos" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Threes" value="threes" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Fours" value="fours" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Fives" value="fives" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Sixes" value="sixes" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <CalcRow label="Total" value="upper_subtotal" actual={actual_scores} />
+        <CalcRow label="Bonus" value="upper_bonus" actual={actual_scores} />
+        <CalcRow label="Total" value="upper_total" actual={actual_scores} />
+
+        <Row class={styles.head} label="Lower Section" value={(player) => <td></td>} forfeit="" />
+        <InputRow label="3 of a Kind" value="triple" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="4 of a Kind" value="quad" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Full House" value="fullhouse" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Small Straight" value="small" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Large Straight" value="large" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="YAHTZEE" value="yahtzee" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <InputRow label="Chance" value="chance" actual={actual_scores} maybe={maybe_scores} forfeit={forfeit_scores} />
+        <CalcRow label="YAHTZEE BONUS" value="yahtzee_bonus" actual={actual_scores} />
+
+        <CalcRow label="Lower Section Total" value="lower_total" actual={actual_scores} />
+        <CalcRow label="Upper Section Total" value="upper_total" actual={actual_scores} />
+        <CalcRow label="Grand Total" value="total" actual={actual_scores} />
+      </tbody>
+    </table>
+  )
+}
+
+function Row(props) {
+  const { label, value, forfeit, ...attrs } = props;
+  return (
+    <tr {...attrs}>
+      <th>{label}</th>
+      <For each={state.players}>{(player, index) => value(player, index())}</For>
+      <Show when={state.show_forfeit}><td>{forfeit}</td></Show>
+    </tr>
+  );
+}
+
+function InputRow(props) {
+  const { label, value, actual, maybe, forfeit } = props;
+
+  return (
+    <Row label={label} value={(player, index) => <Switch fallback={<td></td>}>
       <Match when={player.scores[value].length == 0 && player.current}>
         <td class={styles.maybe}
           title="click to score roll against this row"
           onclick={() => setScore(player, value, state.roll)}>
-          {score({ [value]: [state.roll] })}
+          {maybe()[value]}
           <i>✏️</i>
         </td>
       </Match>
       <Match when={player.scores[value].length > 0}>
-        <td class={styles.actual}>{score(player.scores)}</td>
+        <td class={styles.actual}>{actual()[index][value]}</td>
       </Match>
     </Switch>}
-      forfeit={<Show when={!currentPlayerScored(value)}>{MAX[value] - score({ [value]: [state.roll] })}</Show>} />
+      forfeit={<Show when={!currentPlayerScored(value)}>{forfeit()[value]}</Show>} />
   );
 }
 
 function CalcRow(props) {
-  const { score, label } = props;
+  const { label, value, actual } = props;
 
   return (
-    <Row class={styles.foot} label={label} value={(player) => <td>{score(player.scores)}</td>} forfeit="" />
+    <Row class={styles.foot} label={label} value={(player, index) => <td>{actual()[index][value]}</td>} forfeit="" />
   );
 }
 
