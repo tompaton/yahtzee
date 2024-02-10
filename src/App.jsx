@@ -10,6 +10,7 @@ const [state, setState] = createStore({
   hold: [false, false, false, false, false],
   rerolls: 3,
   show_forfeit: false,
+  show_hint: false,
   players: [
     {
       name: 'Player One',
@@ -178,6 +179,9 @@ function App() {
           <nav>
             <input type="checkbox" id="show_forfeit" value={state.show_forfeit} onclick={() => setState("show_forfeit", !state.show_forfeit)} />
             <label for="show_forfeit">Show points forfeitted for row?</label>
+            {" "}
+            <input type="checkbox" id="show_hint" value={state.show_hint} onclick={() => setState("show_hint", !state.show_hint)} />
+            <label for="show_hint">Show hints?</label>
           </nav>
         </section>
       </article>
@@ -332,6 +336,10 @@ function currentPlayerIndex() {
   return 0;
 }
 
+function HintIcon(type, msg) {
+  return <span class={styles.hint} title={msg}>{{ 'good': '🟢', 'bad': '🔴', 'ok': '🟠' }[type]}</span>;
+}
+
 function ScoreSheet() {
 
   const sheet = createMemo(() => {
@@ -350,14 +358,50 @@ function ScoreSheet() {
       for (let value in all) {
         if (player.scores[value] === undefined) {
           // want total values in actual
-          item[value] = { actual: all[value], maybe: null, forfeit: null };
+          item[value] = { actual: all[value], maybe: null, forfeit: null, hint: [] };
         } else if (player.scores[value].length) {
-          item[value] = { actual: all[value], maybe: null, forfeit: null };
+          item[value] = { actual: all[value], maybe: null, forfeit: null, hint: [] };
         } else if (player.current) {
-          item[value] = { actual: null, maybe: maybe[value], forfeit: MAX[value] - maybe[value] };
+          item[value] = { actual: null, maybe: maybe[value], forfeit: MAX[value] - maybe[value], hint: [] };
         } else {
-          item[value] = { actual: null, maybe: null, forfeit: null };
+          item[value] = { actual: null, maybe: null, forfeit: null, hint: [] };
         }
+      }
+
+      if (player.current) {
+        // fill in hint for best scoring row
+        let max_score = 0, max_value = null;
+        for (let value in item) {
+          if (item[value].maybe !== null && item[value].maybe > max_score) {
+            max_value = value; max_score = item[value].maybe;
+          }
+        }
+        if (max_value !== null)
+          item[max_value].hint.push(HintIcon("good", "Highest score for this roll"));
+
+        // fill in hint for row with lowest forfeit
+        let min_forfeit = 999, min_value = null;
+        for (let value in item) {
+          if (item[value].forfeit !== null && item[value].forfeit < min_forfeit) {
+            min_value = value; min_forfeit = item[value].forfeit;
+          }
+        }
+        if (min_value !== null && state.roll[0] !== null)
+          item[min_value].hint.push(HintIcon("good", "Lowest score forfeit for this roll"));
+
+        // fill in hint for upper section bonus
+        let avg_upper_bonus = {
+          "ones": 3, "twos": 6, "threes": 9, "fours": 12, "fives": 15, "sixes": 18
+        };
+        for (let value in avg_upper_bonus) {
+          if (item[value].maybe && item[value].maybe < avg_upper_bonus[value]) {
+            item[value].hint.push(HintIcon("bad", "Below average for upper bonus"));
+          }
+          if (item[value].maybe !== null && item[value].maybe >= avg_upper_bonus[value]) {
+            item[value].hint.push(HintIcon("ok", "Above average for upper bonus"));
+          }
+        }
+
       }
     }
     return result;
@@ -368,9 +412,14 @@ function ScoreSheet() {
       <colgroup>
         <col />
         <For each={state.players}>{(player) =>
-          <col classList={{ [styles.current]: player.current }} />
+          <col classList={{ [styles.player]: true, [styles.current]: player.current }} />
         }</For>
-        <Show when={state.show_forfeit}><col /></Show>
+        <Show when={state.show_forfeit}>
+          <col class={styles.forfeit} />
+        </Show>
+        <Show when={state.show_hint}>
+          <col class={styles.hint} />
+        </Show>
       </colgroup>
       <tbody>
         <Row class={styles.head} label="Upper Section" forfeit=""
@@ -404,12 +453,13 @@ function ScoreSheet() {
 }
 
 function Row(props) {
-  const { label, value, forfeit, ...attrs } = props;
+  const { label, value, forfeit, hint, ...attrs } = props;
   return (
     <tr {...attrs}>
       <th>{label}</th>
       <For each={state.players}>{(player, index) => value(index())}</For>
       <Show when={state.show_forfeit}><td>{forfeit}</td></Show>
+      <Show when={state.show_hint}><td>{hint}</td></Show>
     </tr>
   );
 }
@@ -422,7 +472,8 @@ function InputRow(props) {
       <InputCol actual={() => sheet()[index][value].actual}
         maybe={() => sheet()[index][value].maybe}
         onclick={() => setScore(index, value, state.roll)} />}
-      forfeit={() => sheet()[currentPlayerIndex()][value].forfeit} />
+      forfeit={() => sheet()[currentPlayerIndex()][value].forfeit}
+      hint={() => sheet()[currentPlayerIndex()][value].hint} />
   );
 }
 
