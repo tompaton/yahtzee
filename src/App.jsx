@@ -11,6 +11,7 @@ const [state, setState] = createStore({
   rerolls: 3,
   show_forfeit: false,
   show_hint: false,
+  show_probs: false,
   players: [
     {
       name: 'Player One',
@@ -177,6 +178,9 @@ function App() {
         <section>
           <ScoreSheet />
           <nav>
+            <input type="checkbox" id="show_probs" value={state.show_probs} onclick={() => setState("show_probs", !state.show_probs)} />
+            <label for="show_probs">Show probabilities?</label>
+            {" "}
             <input type="checkbox" id="show_forfeit" value={state.show_forfeit} onclick={() => setState("show_forfeit", !state.show_forfeit)} />
             <label for="show_forfeit">Show points forfeitted for row?</label>
             {" "}
@@ -219,6 +223,13 @@ function totalIf(score, check, rolls) {
 
   if (check(dice)) return score;
   else return 0;
+}
+
+function countIf(check, rolls) {
+  let count = 0;
+  for (let roll of rolls)
+    if (check(roll)) count++;
+  return count;
 }
 
 function countDice(dice) {
@@ -283,6 +294,13 @@ function isChance(dice) {
   return true;
 }
 
+function has3Of(value) {
+  return (dice) => {
+    const counts = countDice(dice);
+    return counts[value] >= 3;
+  }
+}
+
 function allScores(scores) {
   const result = {
     "ones": totalJust(1, scores.ones),
@@ -341,6 +359,26 @@ function HintIcon(type, msg) {
 }
 
 function ScoreSheet() {
+  const all_possible_rolls = createMemo(() => {
+    const rolls = [];
+
+    const possible = [];
+    for (let i = 0; i < 5; i++) {
+      if (state.hold[i])
+        possible.push([state.roll[i]]);
+      else
+        possible.push([1, 2, 3, 4, 5, 6]);
+    }
+
+    for (let a of possible[0])
+      for (let b of possible[1])
+        for (let c of possible[2])
+          for (let d of possible[3])
+            for (let e of possible[4])
+              rolls.push([a, b, c, d, e]);
+
+    return rolls;
+  });
 
   const sheet = createMemo(() => {
     const result = [];
@@ -358,17 +396,34 @@ function ScoreSheet() {
       for (let value in all) {
         if (player.scores[value] === undefined) {
           // want total values in actual
-          item[value] = { actual: all[value], maybe: null, forfeit: null, hint: [] };
+          item[value] = { actual: all[value], maybe: null, forfeit: null, hint: [], probs: null };
         } else if (player.scores[value].length) {
-          item[value] = { actual: all[value], maybe: null, forfeit: null, hint: [] };
+          item[value] = { actual: all[value], maybe: null, forfeit: null, hint: [], probs: null };
         } else if (player.current) {
-          item[value] = { actual: null, maybe: maybe[value], forfeit: MAX[value] - maybe[value], hint: [] };
+          item[value] = { actual: null, maybe: maybe[value], forfeit: MAX[value] - maybe[value], hint: [], probs: null };
         } else {
-          item[value] = { actual: null, maybe: null, forfeit: null, hint: [] };
+          item[value] = { actual: null, maybe: null, forfeit: null, hint: [], probs: null };
         }
       }
 
       if (player.current) {
+        const all_rolls = all_possible_rolls();
+        const denominator = all_rolls.length;
+        item["ones"].probs = (countIf(has3Of(1), all_rolls) / denominator).toFixed(3) + '%';
+        item["twos"].probs = (countIf(has3Of(2), all_rolls) / denominator).toFixed(3) + '%';
+        item["threes"].probs = (countIf(has3Of(3), all_rolls) / denominator).toFixed(3) + '%';
+        item["fours"].probs = (countIf(has3Of(4), all_rolls) / denominator).toFixed(3) + '%';
+        item["fives"].probs = (countIf(has3Of(5), all_rolls) / denominator).toFixed(3) + '%';
+        item["sixes"].probs = (countIf(has3Of(6), all_rolls) / denominator).toFixed(3) + '%';
+
+        item["triple"].probs = (countIf(isTuple(3), all_rolls) / denominator).toFixed(3) + '%';
+        item["quad"].probs = (countIf(isTuple(4), all_rolls) / denominator).toFixed(3) + '%';
+        item["fullhouse"].probs = (countIf(isFullHouse, all_rolls) / denominator).toFixed(3) + '%';
+        item["small"].probs = (countIf(isStraight(4), all_rolls) / denominator).toFixed(3) + '%';
+        item["large"].probs = (countIf(isStraight(5), all_rolls) / denominator).toFixed(3) + '%';
+        item["yahtzee"].probs = (countIf(isYahtzee, all_rolls) / denominator).toFixed(3) + '%';
+        item["chance"].probs = (countIf(isChance, all_rolls) / denominator).toFixed(3) + '%';
+
         // fill in hint for best scoring row
         let max_score = 0, max_value = null;
         for (let value in item) {
@@ -414,6 +469,9 @@ function ScoreSheet() {
         <For each={state.players}>{(player) =>
           <col classList={{ [styles.player]: true, [styles.current]: player.current }} />
         }</For>
+        <Show when={state.show_probs}>
+          <col class={styles.probs} />
+        </Show>
         <Show when={state.show_forfeit}>
           <col class={styles.forfeit} />
         </Show>
@@ -453,11 +511,12 @@ function ScoreSheet() {
 }
 
 function Row(props) {
-  const { label, value, forfeit, hint, ...attrs } = props;
+  const { label, value, probs, forfeit, hint, ...attrs } = props;
   return (
     <tr {...attrs}>
       <th>{label}</th>
       <For each={state.players}>{(player, index) => value(index())}</For>
+      <Show when={state.show_probs}><td>{probs}</td></Show>
       <Show when={state.show_forfeit}><td>{forfeit}</td></Show>
       <Show when={state.show_hint}><td>{hint}</td></Show>
     </tr>
@@ -472,6 +531,7 @@ function InputRow(props) {
       <InputCol actual={() => sheet()[index][value].actual}
         maybe={() => sheet()[index][value].maybe}
         onclick={() => setScore(index, value, state.roll)} />}
+      probs={() => sheet()[currentPlayerIndex()][value].probs}
       forfeit={() => sheet()[currentPlayerIndex()][value].forfeit}
       hint={() => sheet()[currentPlayerIndex()][value].hint} />
   );

@@ -142,10 +142,6 @@ table.scores tr th:first-child {
   text-transform: uppercase;
 }
 
-col.current {
-  background-color: #253115;
-}
-
 .foot th {
   padding: 10px 0px;
   text-transform: uppercase;
@@ -183,6 +179,15 @@ td.maybe:hover i {
 
 col.player {
   width: 10em;
+}
+
+col.current {
+  background-color: #253115;
+}
+
+col.probs {
+  width: 3em;
+  font-size: 0.8em;
 }
 
 col.forfeit {
