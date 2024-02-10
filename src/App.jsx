@@ -113,7 +113,8 @@ function setRoll(roll_string) {
   }
 }
 
-function setScore(player, row, roll) {
+function setScore(player_index, row, roll) {
+  const player = state.players[player_index];
   // special case for yahtzee bonus:
   // first yahtzee can be filled in to any row you like, but putting it anywhere
   // other than the yahtzee row would be a bit unusual...
@@ -372,7 +373,7 @@ function ScoreSheet() {
       </colgroup>
       <tbody>
         <Row class={styles.head} label="Upper Section" forfeit=""
-          value={(player) => <th title="click to rename players" onclick={renamePlayers}>{player.name}</th>} />
+          value={(index) => <th title="click to rename players" onclick={renamePlayers}>{state.players[index].name}</th>} />
         <InputRow label="Aces" value="ones" sheet={sheet} />
         <InputRow label="Twos" value="twos" sheet={sheet} />
         <InputRow label="Threes" value="threes" sheet={sheet} />
@@ -383,7 +384,7 @@ function ScoreSheet() {
         <CalcRow label="Bonus" value="upper_bonus" sheet={sheet} />
         <CalcRow label="Total" value="upper_total" sheet={sheet} />
 
-        <Row class={styles.head} label="Lower Section" value={(player) => <td></td>} forfeit="" />
+        <Row class={styles.head} label="Lower Section" value={() => <td></td>} forfeit="" />
         <InputRow label="3 of a Kind" value="triple" sheet={sheet} />
         <InputRow label="4 of a Kind" value="quad" sheet={sheet} />
         <InputRow label="Full House" value="fullhouse" sheet={sheet} />
@@ -406,7 +407,7 @@ function Row(props) {
   return (
     <tr {...attrs}>
       <th>{label}</th>
-      <For each={state.players}>{(player, index) => value(player, index())}</For>
+      <For each={state.players}>{(player, index) => value(index())}</For>
       <Show when={state.show_forfeit}><td>{forfeit}</td></Show>
     </tr>
   );
@@ -416,11 +417,11 @@ function InputRow(props) {
   const { label, value, sheet } = props;
 
   return (
-    <Row label={label} value={(player, index) => <Switch fallback={<td></td>}>
+    <Row label={label} value={(index) => <Switch fallback={<td></td>}>
       <Match when={sheet()[index].maybe[value] !== undefined}>
         <td class={styles.maybe}
           title="click to score roll against this row"
-          onclick={() => setScore(player, value, state.roll)}>
+          onclick={() => setScore(index, value, state.roll)}>
           {sheet()[index].maybe[value]}
           <i>✏️</i>
         </td>
@@ -437,7 +438,7 @@ function CalcRow(props) {
   const { label, value, sheet } = props;
 
   return (
-    <Row class={styles.foot} label={label} value={(player, index) => <td>{sheet()[index].actual[value] || 0}</td>} forfeit="" />
+    <Row class={styles.foot} label={label} value={(index) => <td>{sheet()[index].actual[value] || 0}</td>} forfeit="" />
   );
 }
 
