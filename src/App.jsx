@@ -344,18 +344,19 @@ function ScoreSheet() {
         current_roll[value] = [state.roll];
       const maybe = allScores(current_roll);
 
-      const item = { actual: {}, maybe: {}, forfeit: {} };
+      const item = {};
       result.push(item);
 
       for (let value in all) {
         if (player.scores[value] === undefined) {
           // want total values in actual
-          item.actual[value] = all[value];
+          item[value] = { actual: all[value], maybe: null, forfeit: null };
         } else if (player.scores[value].length) {
-          item.actual[value] = all[value];
+          item[value] = { actual: all[value], maybe: null, forfeit: null };
         } else if (player.current) {
-          item.maybe[value] = maybe[value];
-          item.forfeit[value] = MAX[value] - maybe[value];
+          item[value] = { actual: null, maybe: maybe[value], forfeit: MAX[value] - maybe[value] };
+        } else {
+          item[value] = { actual: null, maybe: null, forfeit: null };
         }
       }
     }
@@ -417,20 +418,11 @@ function InputRow(props) {
   const { label, value, sheet } = props;
 
   return (
-    <Row label={label} value={(index) => <Switch fallback={<td></td>}>
-      <Match when={sheet()[index].maybe[value] !== undefined}>
-        <td class={styles.maybe}
-          title="click to score roll against this row"
-          onclick={() => setScore(index, value, state.roll)}>
-          {sheet()[index].maybe[value]}
-          <i>✏️</i>
-        </td>
-      </Match>
-      <Match when={sheet()[index].actual[value] !== undefined}>
-        <td class={styles.actual}>{sheet()[index].actual[value]}</td>
-      </Match>
-    </Switch>}
-      forfeit={() => sheet()[currentPlayerIndex()].forfeit[value]} />
+    <Row label={label} value={(index) =>
+      <InputCol actual={() => sheet()[index][value].actual}
+        maybe={() => sheet()[index][value].maybe}
+        onclick={() => setScore(index, value, state.roll)} />}
+      forfeit={() => sheet()[currentPlayerIndex()][value].forfeit} />
   );
 }
 
@@ -438,7 +430,28 @@ function CalcRow(props) {
   const { label, value, sheet } = props;
 
   return (
-    <Row class={styles.foot} label={label} value={(index) => <td>{sheet()[index].actual[value] || 0}</td>} forfeit="" />
+    <Row class={styles.foot} label={label}
+      value={(index) => <td>{sheet()[index][value].actual || 0}</td>}
+      forfeit="" />
+  );
+}
+
+function InputCol(props) {
+  const { actual, maybe, onclick } = props;
+  return (
+    <Switch fallback={<td></td>}>
+      <Match when={maybe() !== null}>
+        <td class={styles.maybe}
+          title="click to score roll against this row"
+          onclick={() => onclick()}>
+          {maybe}
+          <i>✏️</i>
+        </td>
+      </Match>
+      <Match when={actual() !== null}>
+        <td class={styles.actual}>{actual}</td>
+      </Match>
+    </Switch>
   );
 }
 
