@@ -9,6 +9,7 @@ const [state, setState] = createStore({
   roll_input: "",
   hold: [false, false, false, false, false],
   rerolls: 3,
+  rolling: false,
   winner: null,
   show_forfeit: false,
   show_hint: false,
@@ -85,6 +86,14 @@ function toggleHold(i) {
 function rollDice() {
   if (state.rerolls == 0)
     return;
+
+  setState("rolling", true);
+
+  window.setTimeout(rollDiceComplete, 250);
+}
+
+function rollDiceComplete() {
+  setState("rolling", false);
 
   for (let i = 0; i < 5; i++)
     if (!state.hold[i])
@@ -634,7 +643,7 @@ function Roll() {
               <Match when={state.rerolls == 0}><span title="No rolls available">🔴🔴🔴</span></Match>
             </Switch>
             <br /><br />
-            <button onClick={() => rollDice()} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
+            <button onClick={() => rollDice()} disabled={state.rolling} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
             <br />
             <RollInput />
           </td>
@@ -648,7 +657,9 @@ const DOTS = { 1: [7], 2: [3, 4], 3: [3, 4, 7], 4: [1, 3, 4, 6], 5: [1, 3, 4, 6,
 function Die(props) {
   const { face, hold } = props;
   return (
-    <div classList={{ [styles.face]: true, [styles.hold]: hold }} title={face === null ? "" : face + (hold ? " (click to allow re-roll)" : " (click to hold)")}>
+    <div
+      classList={{ [styles.face]: true, [styles.hold]: hold, [styles.rolling]: state.rolling }}
+      title={face === null ? "" : face + (hold ? " (click to allow re-roll)" : " (click to hold)")}>
       <For each={DOTS[face]}>{(dot) => <div class={styles['dot' + dot]} />}</For>
     </div>
   );
