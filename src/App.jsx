@@ -9,6 +9,7 @@ const [state, setState] = createStore({
   roll_input: "",
   hold: [false, false, false, false, false],
   rerolls: 3,
+  winner: null,
   show_forfeit: false,
   show_hint: false,
   show_probs: false,
@@ -130,6 +131,8 @@ function setScore(player_index, row, roll) {
   appendRoll(player, row, roll);
   clearRoll();
   nextPlayer();
+  if (gameFinished())
+    highlightWinner();
 }
 
 function appendRoll(player, row, roll) {
@@ -156,6 +159,30 @@ function nextPlayer() {
 
   setState("players", i, "current", false);
   setState("players", (i + 1) % state.players.length, "current", true);
+}
+
+function gameFinished() {
+
+  const scores = state.players[currentPlayerIndex()].scores;
+  for (const value in scores)
+    if (scores[value].length == 0)
+      return false;
+
+  return true;
+}
+
+function highlightWinner() {
+  let max_score = 0, winner = null;
+  for (let i = 0; i < state.players.length; i++) {
+    let score = allScores(state.players[i].scores)["total"];
+    if (score > max_score) {
+      max_score = score;
+      winner = i;
+    }
+    setState("players", i, "current", false);
+  }
+
+  setState("winner", winner);
 }
 
 function App() {
@@ -466,8 +493,8 @@ function ScoreSheet() {
     <table class={styles.scores}>
       <colgroup>
         <col />
-        <For each={state.players}>{(player) =>
-          <col classList={{ [styles.player]: true, [styles.current]: player.current }} />
+        <For each={state.players}>{(player, index) =>
+          <col classList={{ [styles.player]: true, [styles.current]: player.current, [styles.winner]: index() === state.winner }} />
         }</For>
         <Show when={state.show_probs}>
           <col class={styles.probs} />

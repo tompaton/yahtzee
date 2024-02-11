@@ -185,6 +185,10 @@ col.current {
   background-color: #253115;
 }
 
+col.winner {
+  background-color: #004466;
+}
+
 col.probs {
   width: 3em;
   font-size: 0.8em;
