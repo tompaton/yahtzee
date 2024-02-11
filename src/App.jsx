@@ -600,6 +600,13 @@ function Roll() {
             {(die) => <td onclick={() => toggleHold(die.index)}><Die face={die.face} hold={die.hold} /></td>}
           </For>
           <td>
+            <Switch>
+              <Match when={state.rerolls == 3}><span title="3 rolls available">🟢🟢🟢</span></Match>
+              <Match when={state.rerolls == 2}><span title="2 rolls available">🔴🟢🟢</span></Match>
+              <Match when={state.rerolls == 1}><span title="1 rolls available">🔴🔴🟢</span></Match>
+              <Match when={state.rerolls == 0}><span title="No rolls available">🔴🔴🔴</span></Match>
+            </Switch>
+            <br /><br />
             <button onClick={() => rollDice()} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
             <br />
             <RollInput />
