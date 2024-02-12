@@ -155,8 +155,16 @@ table.scores tr th:first-child {
 }
 
 table.scores tbody th:first-child {
-  width: 30em;
+  width: 25em;
   padding-left: 10px;
+}
+
+table.scores .rule {
+  font-size: 0.75em;
+  font-weight: normal;
+  float: right;
+  margin-right: 1em;
+  text-transform: initial;
 }
 
 table.scores tbody td {

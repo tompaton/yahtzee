@@ -518,25 +518,25 @@ function ScoreSheet() {
       <tbody>
         <Row class={styles.head} label="Upper Section" forfeit=""
           value={(index) => <th title="click to rename players" onclick={renamePlayers}>{state.players[index].name}</th>} />
-        <InputRow label="Aces" value="ones" sheet={sheet} />
-        <InputRow label="Twos" value="twos" sheet={sheet} />
-        <InputRow label="Threes" value="threes" sheet={sheet} />
-        <InputRow label="Fours" value="fours" sheet={sheet} />
-        <InputRow label="Fives" value="fives" sheet={sheet} />
-        <InputRow label="Sixes" value="sixes" sheet={sheet} />
+        <InputRow label="Aces" value="ones" sheet={sheet} rule="Count and add only Aces" />
+        <InputRow label="Twos" value="twos" sheet={sheet} rule="Count and add only Twos" />
+        <InputRow label="Threes" value="threes" sheet={sheet} rule="Count and add only Threes" />
+        <InputRow label="Fours" value="fours" sheet={sheet} rule="Count and add only Fours" />
+        <InputRow label="Fives" value="fives" sheet={sheet} rule="Count and add only Fives" />
+        <InputRow label="Sixes" value="sixes" sheet={sheet} rule="Count and add only Sixes" />
         <CalcRow label="Total" value="upper_subtotal" sheet={sheet} />
-        <CalcRow label="Bonus" value="upper_bonus" sheet={sheet} />
+        <CalcRow label="Bonus" value="upper_bonus" sheet={sheet} rule="If total score is over 63, score 35" />
         <CalcRow label="Total" value="upper_total" sheet={sheet} />
 
         <Row class={styles.head} label="Lower Section" value={() => <td></td>} forfeit="" />
-        <InputRow label="3 of a Kind" value="triple" sheet={sheet} />
-        <InputRow label="4 of a Kind" value="quad" sheet={sheet} />
-        <InputRow label="Full House" value="fullhouse" sheet={sheet} />
-        <InputRow label="Small Straight" value="small" sheet={sheet} />
-        <InputRow label="Large Straight" value="large" sheet={sheet} />
-        <InputRow label="YAHTZEE" value="yahtzee" sheet={sheet} />
-        <InputRow label="Chance" value="chance" sheet={sheet} />
-        <CalcRow label="YAHTZEE BONUS" value="yahtzee_bonus" sheet={sheet} />
+        <InputRow label="3 of a Kind" value="triple" sheet={sheet} rule="Add total of all dice" />
+        <InputRow label="4 of a Kind" value="quad" sheet={sheet} rule="Add total of all dice" />
+        <InputRow label="Full House" value="fullhouse" sheet={sheet} rule="Score 25" />
+        <InputRow label="Small Straight" value="small" sheet={sheet} rule="Sequence of 4, score 30" />
+        <InputRow label="Large Straight" value="large" sheet={sheet} rule="Sequence of 5, score 40" />
+        <InputRow label="YAHTZEE" value="yahtzee" sheet={sheet} rule="5 of a kind, score 50" />
+        <InputRow label="Chance" value="chance" sheet={sheet} rule="Score total of all dice" />
+        <CalcRow label="YAHTZEE BONUS" value="yahtzee_bonus" sheet={sheet} rule="Score 100 for each additional Yahtzee" />
 
         <CalcRow label="Lower Section Total" value="lower_total" sheet={sheet} />
         <CalcRow label="Upper Section Total" value="upper_total" sheet={sheet} />
@@ -547,10 +547,13 @@ function ScoreSheet() {
 }
 
 function Row(props) {
-  const { label, value, probs, forfeit, hint, ...attrs } = props;
+  const { label, rule, value, probs, forfeit, hint, ...attrs } = props;
   return (
     <tr {...attrs}>
-      <th>{label}</th>
+      <th>
+        {label}
+        <Show when={rule}><span class={styles.rule}>{rule}</span></Show>
+      </th>
       <For each={state.players}>{(player, index) => value(index())}</For>
       <Show when={state.show_probs}><td>{probs}</td></Show>
       <Show when={state.show_forfeit}><td>{forfeit}</td></Show>
@@ -560,10 +563,10 @@ function Row(props) {
 }
 
 function InputRow(props) {
-  const { label, value, sheet } = props;
+  const { label, rule, value, sheet } = props;
 
   return (
-    <Row label={label} value={(index) =>
+    <Row label={label} rule={rule} value={(index) =>
       <InputCol actual={() => sheet()[index][value].actual}
         maybe={() => sheet()[index][value].maybe}
         onclick={() => setScore(index, value, state.roll)} />}
@@ -574,10 +577,10 @@ function InputRow(props) {
 }
 
 function CalcRow(props) {
-  const { label, value, sheet } = props;
+  const { label, rule, value, sheet } = props;
 
   return (
-    <Row class={styles.foot} label={label}
+    <Row class={styles.foot} label={label} rule={rule}
       value={(index) => <td>{sheet()[index][value].actual || 0}</td>}
       forfeit="" />
   );
