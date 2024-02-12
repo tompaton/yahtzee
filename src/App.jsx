@@ -5,6 +5,7 @@ import styles from './App.module.css';
 
 
 const [state, setState] = createStore({
+  started: false,
   roll: [null, null, null, null, null],
   roll_input: "",
   hold: [false, false, false, false, false],
@@ -61,6 +62,7 @@ function zeroScores() {
   setState('players', Array.from(names, newPlayer));
   setState('players', 0, 'current', true);
   clearRoll();
+  setState('started', false);
 }
 
 function inputNames() {
@@ -88,6 +90,7 @@ function rollDice() {
     return;
 
   setState("rolling", true);
+  setState("started", true);
 
   window.setTimeout(rollDiceComplete, 250);
 }
@@ -120,6 +123,7 @@ function setRoll(roll_string) {
     for (let i = 0; i < 5; i++)
       setState("roll", i, result[i]);
     setState("roll_input", "");
+    setState("started", true);
   } else {
     setState("roll_input", remainder);
   }
@@ -197,7 +201,7 @@ function highlightWinner() {
 function App() {
 
   return (
-    <div class={styles.App}>
+    <div classList={{ [styles.App]: true, [styles.started]: state.started }}>
       <header class={styles.header}>
         <nav></nav>
         <h1>

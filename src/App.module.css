@@ -30,6 +30,11 @@
   margin: 0.25em 0em;
 }
 
+.App.started .header h1 {
+  font-size: 1em;
+  text-align: left;
+}
+
 .header nav {
   display: block;
   flex-grow: 0;
