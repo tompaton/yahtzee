@@ -48,6 +48,10 @@
   align-content: baseline;
 }
 
+.App.started .header nav {
+  flex-grow: 1;
+}
+
 .App nav {
   padding-bottom: 1em;
 }

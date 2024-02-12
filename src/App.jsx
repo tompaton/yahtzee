@@ -11,6 +11,7 @@ const [state, setState] = createStore({
   hold: [false, false, false, false, false],
   rerolls: 3,
   rolling: false,
+  undo: null,
   winner: null,
   show_forfeit: false,
   show_hint: false,
@@ -63,6 +64,8 @@ function zeroScores() {
   setState('players', 0, 'current', true);
   clearRoll();
   setState('started', false);
+  setState("winner", null);
+  setState("undo", null);
 }
 
 function inputNames() {
@@ -99,6 +102,7 @@ function rollDice() {
 
   setState("rolling", true);
   setState("started", true);
+  setState("undo", null);
 
   window.setTimeout(rollDiceComplete, 250);
 }
@@ -132,6 +136,7 @@ function setRoll(roll_string) {
       setState("roll", i, result[i]);
     setState("roll_input", "");
     setState("started", true);
+    setState("undo", null);
   } else {
     setState("roll_input", remainder);
   }
@@ -145,15 +150,57 @@ function setScore(player_index, row, roll) {
   // subsequent yahtzee gets scored in any open row (though it seems in some
   // variants you must do the upper section first)
   // but we also want to record the bonus.
+  let yahtzee_bonus = false;
   if (isYahtzee(roll) && player.scores.yahtzee.length && isYahtzee(player.scores.yahtzee[0])) {
     appendRoll(player, 'yahtzee', roll);
+    yahtzee_bonus = true;
   }
-
   appendRoll(player, row, roll);
+
+  setState("undo", {
+    'label': "Undo set score",
+    'player': player_index,
+    'row': row,
+    'roll': roll,
+    'rerolls': state.rerolls,
+    'yahtzee_bonus': yahtzee_bonus
+  });
+
   clearRoll();
   nextPlayer();
   if (gameFinished())
     highlightWinner();
+}
+
+function doUndo() {
+  if (state.undo === null) return;
+
+  setState('winner', null);
+  setCurrent(state.undo.player);
+
+  setState("roll", Array.from(state.undo.roll));
+  setState("rerolls", state.undo.rerolls);
+
+  popScore(state.undo.player, state.undo.row);
+
+  if (state.undo.yahtzee_bonus) {
+    popScore(state.undo.player, "yahtzee_bonus");
+  }
+
+  setState("undo", null);
+}
+
+function setCurrent(player_index) {
+  for (let i = 0; i < state.players.length; i++)
+    setState("players", i, "current", false);
+  setState("players", player_index, "current", true);
+}
+
+function popScore(player_index, row) {
+  let rolls = Array.from(state.players[player_index].scores[row]);
+  rolls.pop();
+  setState("players", player_index, "scores", row, rolls);
+
 }
 
 function appendRoll(player, row, roll) {
@@ -217,6 +264,9 @@ function App() {
         </h1>
         <nav>
           <button onClick={() => zeroScores()}>New Game</button>
+          <Show when={state.undo}>
+            <button style="margin-left: 2em;" onclick={() => doUndo()}>{state.undo.label}</button>
+          </Show>
         </nav>
       </header>
       <article>
