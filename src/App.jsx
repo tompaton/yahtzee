@@ -83,6 +83,14 @@ function renamePlayers() {
 function toggleHold(i) {
   if (state.roll[i] === null) return;
   setState("hold", i, !state.hold[i]);
+
+  // automatically hold all dice of same value
+  if (state.hold[i]) {
+    const value = state.roll[i];
+    for (let j = 0; j < 5; j++)
+      if (state.roll[j] == value)
+        setState("hold", j, true);
+  }
 }
 
 function rollDice() {
