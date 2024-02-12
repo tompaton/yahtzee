@@ -212,6 +212,23 @@ function App() {
         </nav>
       </header>
       <article>
+        <Show when={!state.started}>
+          <div class={styles.help}>
+            <button onclick={() => setState('started', true)}>x</button>
+            <ul>
+              <li>Roll Dice or enter the dice into the textbox to start</li>
+              <li>Click New Game to change the number of players</li>
+              <li>Click player names at any point to rename</li>
+              <li>Enter names of players separated by commas.</li>
+              <li>Click a dice to "hold" when re-rolling</li>
+              <li>Up to 3 rolls per turn</li>
+              <li>Click the row with the desired score to record it</li>
+              <li>Upper bonus will be scored automatically</li>
+              <li>Yahtzee bonus will be scored automatically, but you must put the score in an appropriate row according to the Joker rules</li>
+              <li>Some hints/statistics for the current player can be enabled by clicking the checkboxes below the scoresheet</li>
+            </ul>
+          </div>
+        </Show>
         <section>
           <Roll />
         </section>

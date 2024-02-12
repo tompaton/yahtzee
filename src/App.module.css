@@ -52,6 +52,32 @@
   padding-bottom: 1em;
 }
 
+.help {
+  position: absolute;
+  left: 50%;
+  top: 20em;
+  width: 25em;
+  margin-left: -14.5em;
+  border: 1px solid yellowgreen;
+  background: rgba(0, 30, 20, 0.9);
+  text-align: left;
+  padding: 2em;
+  z-index: 1000;
+}
+
+.help button {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+}
+
+.help li {
+  margin-bottom: 0.75em;
+}
+
+.App.started .help {
+  display: none;
+}
 
 div.face {
   position: relative;
