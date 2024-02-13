@@ -302,7 +302,7 @@ function App() {
         </h1>
         <nav>
           <button onClick={() => zeroScores()}>New Game</button>
-          <button style="margin-left: 2em;" onClick={() => setState('help', true)}>Help</button>
+          <button style="margin-left: 2em;" onClick={() => setState('help', !state.help)}>Help</button>
           <Show when={state.undo}>
             <button style="margin-left: 2em;" onclick={() => doUndo()}>{state.undo.label}</button>
           </Show>
@@ -332,13 +332,19 @@ function App() {
         <section>
           <ScoreSheet />
           <nav>
-            <input type="checkbox" id="show_probs" value={state.show_probs} onclick={() => setState("show_probs", !state.show_probs)} />
+            <input type="checkbox" id="show_probs"
+              value={state.show_probs} checked={state.show_probs}
+              onclick={() => setState("show_probs", !state.show_probs)} />
             <label for="show_probs">Show probabilities?</label>
             {" "}
-            <input type="checkbox" id="show_forfeit" value={state.show_forfeit} onclick={() => setState("show_forfeit", !state.show_forfeit)} />
+            <input type="checkbox" id="show_forfeit"
+              value={state.show_forfeit} checked={state.show_forfeit}
+              onclick={() => setState("show_forfeit", !state.show_forfeit)} />
             <label for="show_forfeit">Show points forfeitted for row?</label>
             {" "}
-            <input type="checkbox" id="show_hint" value={state.show_hint} onclick={() => setState("show_hint", !state.show_hint)} />
+            <input type="checkbox" id="show_hint"
+              value={state.show_hint} checked={state.show_hint}
+              onclick={() => setState("show_hint", !state.show_hint)} />
             <label for="show_hint">Show hints?</label>
           </nav>
         </section>
