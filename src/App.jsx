@@ -104,7 +104,16 @@ function rollDice() {
   setState("rolling", true);
   setState("started", true);
   setState("help", false);
-  setState("undo", null);
+
+  setState("undo", {
+    'label': "Undo re-roll",
+    'player': null,
+    'row': null,
+    'roll': Array.from(state.roll),
+    'hold': Array.from(state.hold),
+    'rerolls': state.rerolls,
+    'yahtzee_bonus': null
+  });
 
   window.setTimeout(rollDiceComplete, 250);
 }
@@ -139,7 +148,7 @@ function setRoll(roll_string) {
     setState("roll_input", "");
     setState("started", true);
     setState('help', false);
-    setState("undo", null);
+    setState("undo", null); // no undo for manual entry
   } else {
     setState("roll_input", remainder);
   }
@@ -164,7 +173,8 @@ function setScore(player_index, row, roll) {
     'label': "Undo set score",
     'player': player_index,
     'row': row,
-    'roll': roll,
+    'roll': Array.from(roll),
+    'hold': Array.from(state.hold),
     'rerolls': state.rerolls,
     'yahtzee_bonus': yahtzee_bonus
   });
@@ -178,16 +188,31 @@ function setScore(player_index, row, roll) {
 function doUndo() {
   if (state.undo === null) return;
 
-  setState('winner', null);
-  setCurrent(state.undo.player);
+  if (state.undo.player !== null) {
+    setState('winner', null);
+    setCurrent(state.undo.player);
+  }
 
-  setState("roll", Array.from(state.undo.roll));
-  setState("rerolls", state.undo.rerolls);
+  if (state.undo.roll !== null) {
+    setState("roll", Array.from(state.undo.roll));
+  }
 
-  popScore(state.undo.player, state.undo.row);
+  if (state.undo.rerolls !== null) {
+    setState("rerolls", state.undo.rerolls);
+  }
 
-  if (state.undo.yahtzee_bonus) {
-    popScore(state.undo.player, "yahtzee_bonus");
+  if (state.undo.hold !== null) {
+    setState("hold", Array.from(state.undo.hold));
+  }
+
+  if (state.undo.row !== null) {
+    popScore(state.undo.player, state.undo.row);
+  }
+
+  if (state.undo.yahtzee_bonus != null) {
+    if (state.undo.yahtzee_bonus) {
+      popScore(state.undo.player, "yahtzee_bonus");
+    }
   }
 
   setState("undo", null);
