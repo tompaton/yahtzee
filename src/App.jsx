@@ -6,6 +6,7 @@ import styles from './App.module.css';
 
 const [state, setState] = createStore({
   started: false,
+  help: true,
   roll: [null, null, null, null, null],
   roll_input: "",
   hold: [false, false, false, false, false],
@@ -102,6 +103,7 @@ function rollDice() {
 
   setState("rolling", true);
   setState("started", true);
+  setState("help", false);
   setState("undo", null);
 
   window.setTimeout(rollDiceComplete, 250);
@@ -136,6 +138,7 @@ function setRoll(roll_string) {
       setState("roll", i, result[i]);
     setState("roll_input", "");
     setState("started", true);
+    setState('help', false);
     setState("undo", null);
   } else {
     setState("roll_input", remainder);
@@ -264,15 +267,16 @@ function App() {
         </h1>
         <nav>
           <button onClick={() => zeroScores()}>New Game</button>
+          <button style="margin-left: 2em;" onClick={() => setState('help', true)}>Help</button>
           <Show when={state.undo}>
             <button style="margin-left: 2em;" onclick={() => doUndo()}>{state.undo.label}</button>
           </Show>
         </nav>
       </header>
       <article>
-        <Show when={!state.started}>
+        <Show when={state.help}>
           <div class={styles.help}>
-            <button onclick={() => setState('started', true)}>x</button>
+            <button onclick={() => setState('help', false)}>x</button>
             <ul>
               <li>Roll Dice or enter the dice into the textbox to start</li>
               <li>Click New Game to change the number of players</li>

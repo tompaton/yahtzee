@@ -52,6 +52,10 @@
   flex-grow: 1;
 }
 
+.App.started .header nav:first-child {
+  flex-grow: 0;
+}
+
 .App nav {
   padding-bottom: 1em;
 }
@@ -77,10 +81,6 @@
 
 .help li {
   margin-bottom: 0.75em;
-}
-
-.App.started .help {
-  display: none;
 }
 
 div.face {
