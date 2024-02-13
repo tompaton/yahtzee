@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { createMemo, For, Show, Switch, Match } from "solid-js";
+import { createEffect, createMemo, For, Show, Switch, Match } from "solid-js";
 
 import styles from './App.module.css';
 
@@ -48,6 +48,15 @@ function blankScores() {
     "yahtzee": [],
     "chance": [],
   };
+}
+
+function initSave() {
+  if (localStorage.mastermind) {
+    setState(JSON.parse(localStorage.mastermind));
+  }
+  createEffect(() => {
+    localStorage.mastermind = JSON.stringify(state);
+  });
 }
 
 function zeroScores() {
@@ -282,6 +291,7 @@ function highlightWinner() {
 }
 
 function App() {
+  initSave();
 
   return (
     <div classList={{ [styles.App]: true, [styles.started]: state.started }}>
