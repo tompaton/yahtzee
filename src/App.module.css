@@ -1,63 +1,36 @@
 .App {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 
-  max-width: 1024px;
+  /* max-width: 1024px;
   margin-left: auto;
-  margin-right: auto;
+  margin-right: auto; */
 }
 
 .header {
   background-color: #282c34;
+  color: white;
+  font-size: calc(10px + 2vmin);
+
   display: flex;
   flex-direction: row;
-  align-items: stretch;
+  flex-wrap: wrap;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: flex-start;
 
-  flex-wrap: nowrap;
-  align-content: stretch;
+  flex-shrink: 1;
 }
 
 .header h1 {
-  display: block;
   flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: auto;
-  align-self: auto;
-  order: 0;
-
   margin: 0.25em 0em;
-}
-
-.App.started .header h1 {
   font-size: 1em;
   text-align: left;
 }
 
-.header nav {
-  display: block;
-  flex-grow: 0;
-  flex-shrink: 1;
-  flex-basis: auto;
-  align-self: auto;
-  order: 0;
-
-  width: 200px;
-  text-align: left;
-  align-content: baseline;
-}
-
-.App.started .header nav {
-  flex-grow: 1;
-}
-
-.App.started .header nav:first-child {
-  flex-grow: 0;
-}
-
-.App nav {
-  padding-bottom: 1em;
+.header button {
+  margin: 0.5em;
 }
 
 .help {
@@ -81,6 +54,31 @@
 
 .help li {
   margin-bottom: 0.75em;
+}
+
+.turn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.dice {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0.5em;
+}
+
+.roll {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.roll * {
+  margin: 0.5em;
 }
 
 div.face {
@@ -170,6 +168,12 @@ div.dot7 {
   left: 1.125em;
 }
 
+table.scores {
+  margin: 1em auto;
+  border-collapse: collapse;
+  text-align: center;
+}
+
 table.scores th,
 table.scores td {
   border: 1px solid gray;
@@ -251,4 +255,8 @@ col.forfeit {
 col.hint {
   width: 5em;
   font-size: 0.8em;
+}
+
+.options {
+  text-align: center;
 }

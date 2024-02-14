@@ -457,59 +457,50 @@ function App() {
   return (
     <div classList={{ [styles.App]: true, [styles.started]: state.started }}>
       <header class={styles.header}>
-        <nav></nav>
         <h1>
           Yahtzee Scoresheet
         </h1>
-        <nav>
-          <button onClick={() => zeroScores()}>New Game</button>
-          <button style="margin-left: 2em;" onClick={() => setState('help', !state.help)}>Help</button>
-          <Show when={state.undo}>
-            <button style="margin-left: 2em;" onclick={() => doUndo()}>{state.undo.label}</button>
-          </Show>
-        </nav>
-      </header>
-      <article>
-        <Show when={state.help}>
-          <div class={styles.help}>
-            <button onclick={() => setState('help', false)}>x</button>
-            <ul>
-              <li>Roll Dice or enter the dice into the textbox to start</li>
-              <li>Click New Game to change the number of players</li>
-              <li>Click player names at any point to rename</li>
-              <li>Enter names of players separated by commas.</li>
-              <li>Click a dice to "hold" when re-rolling</li>
-              <li>Up to 3 rolls per turn</li>
-              <li>Click the row with the desired score to record it</li>
-              <li>Upper bonus will be scored automatically</li>
-              <li>Yahtzee bonus will be scored automatically, but you must put the score in an appropriate row according to the Joker rules</li>
-              <li>Some hints/statistics for the current player can be enabled by clicking the checkboxes below the scoresheet</li>
-            </ul>
-          </div>
+        <button onClick={() => zeroScores()}>New Game</button>
+        <button onClick={() => setState('help', !state.help)}>Help</button>
+        <Show when={state.undo}>
+          <button onclick={() => doUndo()}>{state.undo.label}</button>
         </Show>
-        <section>
-          <Roll />
-        </section>
-        <section>
-          <ScoreSheet />
-          <nav>
-            <input type="checkbox" id="show_probs"
-              value={state.show_probs} checked={state.show_probs}
-              onclick={() => setState("show_probs", !state.show_probs)} />
-            <label for="show_probs">Show probabilities?</label>
-            {" "}
-            <input type="checkbox" id="show_forfeit"
-              value={state.show_forfeit} checked={state.show_forfeit}
-              onclick={() => setState("show_forfeit", !state.show_forfeit)} />
-            <label for="show_forfeit">Show points forfeitted for row?</label>
-            {" "}
-            <input type="checkbox" id="show_hint"
-              value={state.show_hint} checked={state.show_hint}
-              onclick={() => setState("show_hint", !state.show_hint)} />
-            <label for="show_hint">Show hints?</label>
-          </nav>
-        </section>
-      </article>
+      </header>
+      <Show when={state.help}>
+        <div class={styles.help}>
+          <button onclick={() => setState('help', false)}>x</button>
+          <ul>
+            <li>Roll Dice or enter the dice into the textbox to start</li>
+            <li>Click New Game to change the number of players</li>
+            <li>Click player names at any point to rename</li>
+            <li>Enter names of players separated by commas.</li>
+            <li>Click a dice to "hold" when re-rolling</li>
+            <li>Up to 3 rolls per turn</li>
+            <li>Click the row with the desired score to record it</li>
+            <li>Upper bonus will be scored automatically</li>
+            <li>Yahtzee bonus will be scored automatically, but you must put the score in an appropriate row according to the Joker rules</li>
+            <li>Some hints/statistics for the current player can be enabled by clicking the checkboxes below the scoresheet</li>
+          </ul>
+        </div>
+      </Show>
+      <Roll />
+      <ScoreSheet />
+      <div class={styles.options}>
+        <input type="checkbox" id="show_probs"
+          value={state.show_probs} checked={state.show_probs}
+          onclick={() => setState("show_probs", !state.show_probs)} />
+        <label for="show_probs">Show probabilities?</label>
+        {" "}
+        <input type="checkbox" id="show_forfeit"
+          value={state.show_forfeit} checked={state.show_forfeit}
+          onclick={() => setState("show_forfeit", !state.show_forfeit)} />
+        <label for="show_forfeit">Show points forfeitted for row?</label>
+        {" "}
+        <input type="checkbox" id="show_hint"
+          value={state.show_hint} checked={state.show_hint}
+          onclick={() => setState("show_hint", !state.show_hint)} />
+        <label for="show_hint">Show hints?</label>
+      </div>
     </div>
   );
 }
@@ -729,6 +720,37 @@ function HintIcon(type, msg) {
   return <span class={styles.hint} title={msg}>{{ 'good': '🟢', 'bad': '🔴', 'ok': '🟠' }[type]}</span>;
 }
 
+function Roll() {
+  const roll = () => {
+    const result = [];
+    for (let i = 0; i < 5; i++)
+      result.push({ 'index': i, 'face': state.roll[i], 'hold': state.hold[i] });
+    return result;
+  };
+  return (
+    <div class={styles.turn}>
+      <div class={styles.dice}>
+        <For each={roll()}>
+          {(die) => <Die onclick={() => toggleHold(die.index)} face={die.face} hold={die.hold} />}
+        </For>
+      </div>
+      <div class={styles.roll}>
+        <Switch>
+          <Match when={state.rerolls == 3}><div title="3 rolls available">🟢🟢🟢</div></Match>
+          <Match when={state.rerolls == 2}><div title="2 rolls available">🔴🟢🟢</div></Match>
+          <Match when={state.rerolls == 1}><div title="1 rolls available">🔴🔴🟢</div></Match>
+          <Match when={state.rerolls == 0}><div title="No rolls available">🔴🔴🔴</div></Match>
+        </Switch>
+
+        <button onClick={() => rollDice()} disabled={state.rolling} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
+
+        <RollInput />
+
+      </div>
+    </div>
+  );
+}
+
 function RollInput() {
   const roll_string = () => {
     let s = "";
@@ -743,48 +765,16 @@ function RollInput() {
       minlength={5} maxLength={5} size={5}
       value={state.roll_input}
       placeholder={roll_string()}
-      style={{ "margin-top": "1em" }}
     />
-  );
-}
-
-function Roll() {
-  const roll = () => {
-    const result = [];
-    for (let i = 0; i < 5; i++)
-      result.push({ 'index': i, 'face': state.roll[i], 'hold': state.hold[i] });
-    return result;
-  };
-  return (
-    <table>
-      <tbody>
-        <tr>
-          <For each={roll()}>
-            {(die) => <td onclick={() => toggleHold(die.index)}><Die face={die.face} hold={die.hold} /></td>}
-          </For>
-          <td>
-            <Switch>
-              <Match when={state.rerolls == 3}><span title="3 rolls available">🟢🟢🟢</span></Match>
-              <Match when={state.rerolls == 2}><span title="2 rolls available">🔴🟢🟢</span></Match>
-              <Match when={state.rerolls == 1}><span title="1 rolls available">🔴🔴🟢</span></Match>
-              <Match when={state.rerolls == 0}><span title="No rolls available">🔴🔴🔴</span></Match>
-            </Switch>
-            <br /><br />
-            <button onClick={() => rollDice()} disabled={state.rolling} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
-            <br />
-            <RollInput />
-          </td>
-        </tr>
-      </tbody>
-    </table>
   );
 }
 
 const DOTS = { 1: [7], 2: [3, 4], 3: [3, 4, 7], 4: [1, 3, 4, 6], 5: [1, 3, 4, 6, 7], 6: [1, 2, 3, 4, 5, 6] };
 function Die(props) {
-  const { face, hold } = props;
+  const { face, hold, onclick } = props;
   return (
     <div
+      onclick={onclick}
       classList={{ [styles.face]: true, [styles.hold]: hold, [styles.rolling]: state.rolling }}
       title={face === null ? "" : face + (hold ? " (click to allow re-roll)" : " (click to hold)")}>
       <For each={DOTS[face]}>{(dot) => <div class={styles['dot' + dot]} />}</For>
