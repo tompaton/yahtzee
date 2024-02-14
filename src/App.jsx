@@ -290,69 +290,6 @@ function highlightWinner() {
   setState("winner", winner);
 }
 
-function App() {
-  initSave();
-
-  return (
-    <div classList={{ [styles.App]: true, [styles.started]: state.started }}>
-      <header class={styles.header}>
-        <nav></nav>
-        <h1>
-          Yahtzee Scoresheet
-        </h1>
-        <nav>
-          <button onClick={() => zeroScores()}>New Game</button>
-          <button style="margin-left: 2em;" onClick={() => setState('help', !state.help)}>Help</button>
-          <Show when={state.undo}>
-            <button style="margin-left: 2em;" onclick={() => doUndo()}>{state.undo.label}</button>
-          </Show>
-        </nav>
-      </header>
-      <article>
-        <Show when={state.help}>
-          <div class={styles.help}>
-            <button onclick={() => setState('help', false)}>x</button>
-            <ul>
-              <li>Roll Dice or enter the dice into the textbox to start</li>
-              <li>Click New Game to change the number of players</li>
-              <li>Click player names at any point to rename</li>
-              <li>Enter names of players separated by commas.</li>
-              <li>Click a dice to "hold" when re-rolling</li>
-              <li>Up to 3 rolls per turn</li>
-              <li>Click the row with the desired score to record it</li>
-              <li>Upper bonus will be scored automatically</li>
-              <li>Yahtzee bonus will be scored automatically, but you must put the score in an appropriate row according to the Joker rules</li>
-              <li>Some hints/statistics for the current player can be enabled by clicking the checkboxes below the scoresheet</li>
-            </ul>
-          </div>
-        </Show>
-        <section>
-          <Roll />
-        </section>
-        <section>
-          <ScoreSheet />
-          <nav>
-            <input type="checkbox" id="show_probs"
-              value={state.show_probs} checked={state.show_probs}
-              onclick={() => setState("show_probs", !state.show_probs)} />
-            <label for="show_probs">Show probabilities?</label>
-            {" "}
-            <input type="checkbox" id="show_forfeit"
-              value={state.show_forfeit} checked={state.show_forfeit}
-              onclick={() => setState("show_forfeit", !state.show_forfeit)} />
-            <label for="show_forfeit">Show points forfeitted for row?</label>
-            {" "}
-            <input type="checkbox" id="show_hint"
-              value={state.show_hint} checked={state.show_hint}
-              onclick={() => setState("show_hint", !state.show_hint)} />
-            <label for="show_hint">Show hints?</label>
-          </nav>
-        </section>
-      </article>
-    </div>
-  );
-}
-
 function totalJust(val, rolls) {
   if (rolls.length == 0) return 0;
   const dice = rolls[rolls.length - 1];
@@ -514,8 +451,67 @@ function currentPlayerIndex() {
   return 0;
 }
 
-function HintIcon(type, msg) {
-  return <span class={styles.hint} title={msg}>{{ 'good': '🟢', 'bad': '🔴', 'ok': '🟠' }[type]}</span>;
+function App() {
+  initSave();
+
+  return (
+    <div classList={{ [styles.App]: true, [styles.started]: state.started }}>
+      <header class={styles.header}>
+        <nav></nav>
+        <h1>
+          Yahtzee Scoresheet
+        </h1>
+        <nav>
+          <button onClick={() => zeroScores()}>New Game</button>
+          <button style="margin-left: 2em;" onClick={() => setState('help', !state.help)}>Help</button>
+          <Show when={state.undo}>
+            <button style="margin-left: 2em;" onclick={() => doUndo()}>{state.undo.label}</button>
+          </Show>
+        </nav>
+      </header>
+      <article>
+        <Show when={state.help}>
+          <div class={styles.help}>
+            <button onclick={() => setState('help', false)}>x</button>
+            <ul>
+              <li>Roll Dice or enter the dice into the textbox to start</li>
+              <li>Click New Game to change the number of players</li>
+              <li>Click player names at any point to rename</li>
+              <li>Enter names of players separated by commas.</li>
+              <li>Click a dice to "hold" when re-rolling</li>
+              <li>Up to 3 rolls per turn</li>
+              <li>Click the row with the desired score to record it</li>
+              <li>Upper bonus will be scored automatically</li>
+              <li>Yahtzee bonus will be scored automatically, but you must put the score in an appropriate row according to the Joker rules</li>
+              <li>Some hints/statistics for the current player can be enabled by clicking the checkboxes below the scoresheet</li>
+            </ul>
+          </div>
+        </Show>
+        <section>
+          <Roll />
+        </section>
+        <section>
+          <ScoreSheet />
+          <nav>
+            <input type="checkbox" id="show_probs"
+              value={state.show_probs} checked={state.show_probs}
+              onclick={() => setState("show_probs", !state.show_probs)} />
+            <label for="show_probs">Show probabilities?</label>
+            {" "}
+            <input type="checkbox" id="show_forfeit"
+              value={state.show_forfeit} checked={state.show_forfeit}
+              onclick={() => setState("show_forfeit", !state.show_forfeit)} />
+            <label for="show_forfeit">Show points forfeitted for row?</label>
+            {" "}
+            <input type="checkbox" id="show_hint"
+              value={state.show_hint} checked={state.show_hint}
+              onclick={() => setState("show_hint", !state.show_hint)} />
+            <label for="show_hint">Show hints?</label>
+          </nav>
+        </section>
+      </article>
+    </div>
+  );
 }
 
 function ScoreSheet() {
@@ -727,6 +723,10 @@ function InputCol(props) {
       </Match>
     </Switch>
   );
+}
+
+function HintIcon(type, msg) {
+  return <span class={styles.hint} title={msg}>{{ 'good': '🟢', 'bad': '🔴', 'ok': '🟠' }[type]}</span>;
 }
 
 function RollInput() {
