@@ -288,6 +288,7 @@ function highlightWinner() {
   }
 
   setState("winner", winner);
+  setState("rerolls", 0);
 }
 
 function totalJust(val, rolls) {
