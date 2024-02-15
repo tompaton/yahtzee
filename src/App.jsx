@@ -470,6 +470,9 @@ function App() {
       <Show when={state.help}>
         <div class={styles.help}>
           <button onclick={() => setState('help', false)}>x</button>
+          <h1>
+            Yahtzee Scoresheet
+          </h1>
           <ul>
             <li>Roll Dice or enter the dice into the textbox to start</li>
             <li>Click New Game to change the number of players</li>
@@ -481,6 +484,7 @@ function App() {
             <li>Upper bonus will be scored automatically</li>
             <li>Yahtzee bonus will be scored automatically, but you must put the score in an appropriate row according to the Joker rules</li>
             <li>Some hints/statistics for the current player can be enabled by clicking the checkboxes below the scoresheet</li>
+            <li>Note: Probabilities displayed are simplistic and don't consider re-rolls.</li>
           </ul>
         </div>
       </Show>
@@ -743,7 +747,7 @@ function Roll() {
           <Match when={state.rerolls == 0}><div title="No rolls available">🔴🔴🔴</div></Match>
         </Switch>
 
-        <button onClick={() => rollDice()} disabled={state.rolling} style={{ 'padding': '0.5em 1em' }}>Roll Dice</button>
+        <button onClick={() => rollDice()} disabled={state.rolling} style={{ 'padding': '1em 1.5em' }}>Roll Dice</button>
 
         <RollInput />
 

@@ -35,10 +35,11 @@
 
 .help {
   position: absolute;
-  left: 50%;
-  top: 20em;
-  width: 25em;
-  margin-left: -14.5em;
+  left: 0;
+  top: 0;
+  right: 0;
+  width: auto;
+  margin: 3em;
   border: 1px solid yellowgreen;
   background: rgba(0, 30, 20, 0.9);
   text-align: left;
@@ -166,6 +167,29 @@ div.dot6 {
 div.dot7 {
   top: 1.125em;
   left: 1.125em;
+}
+
+@media (max-width:500px) {
+  div.face {
+    font-size: 1.2em;
+  }
+
+  div.help {
+    margin: 0.5em;
+    padding: 1em;
+  }
+
+  div.help h1 {
+    font-size: 1.2em;
+    margin: 0.5em;
+  }
+}
+
+@media (min-width:800px) {
+  div.help {
+    margin: 3em auto;
+    width: 600px;
+  }
 }
 
 table.scores {
