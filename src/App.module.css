@@ -284,3 +284,11 @@ col.hint {
 .options {
   text-align: center;
 }
+
+.what {
+  text-align: center;
+  font-style: italic;
+  font-size: 0.9em;
+  height: 1em;
+  margin-top: -1em;
+}

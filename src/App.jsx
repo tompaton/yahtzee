@@ -107,11 +107,15 @@ function toggleHold(i) {
     // automatically hold all dice of same value
     if (state.hold[i]) {
       const value = state.roll[i];
-      for (let j = 0; j < 5; j++)
-        if (state.roll[j] == value)
-          setState("hold", j, true);
+      holdValue(value);
     }
   });
+}
+
+function holdValue(value) {
+  for (let i = 0; i < 5; i++)
+    if (state.roll[i] == value)
+      setState("hold", i, true);
 }
 
 function rollDice() {
@@ -506,6 +510,7 @@ function App() {
         </div>
       </Show>
       <Roll />
+      <RollDescription />
       <ScoreSheet />
       <div class={styles.options}>
         <input type="checkbox" id="show_probs"
@@ -524,6 +529,63 @@ function App() {
         <label for="show_hint">Show hints?</label>
       </div>
     </div>
+  );
+}
+
+const LABEL = {
+  "ones": "Aces",
+  "twos": "Twos",
+  "threes": "Threes",
+  "fours": "Fours",
+  "fives": "Fives",
+  "sixes": "Sixes",
+  "upper_subtotal": "Total",
+  "upper_bonus": "Bonus",
+  "triple": "3 of a Kind",
+  "quad": "4 of a Kind",
+  "fullhouse": "Full House",
+  "small": "Small Straight",
+  "large": "Large Straight",
+  "yahtzee": "YAHTZEE",
+  "chance": "Chance",
+  "yahtzee_bonus": "YAHTZEE BONUS",
+  "lower_total": "Lower Section Total",
+  "upper_total": "Upper Section Total",
+  "total": "Grand Total",
+};
+
+
+function RollDescription() {
+  const upper_section = ["", "ones", "twos", "threes", "fours", "fives", "sixes"];
+  const what = () => {
+    const scores = state.players[currentPlayerIndex()].scores;
+    if (isYahtzee(state.roll)) return "yahtzee";
+    if (isStraight(5)(state.roll) && !scores.large.length) return "large";
+    if (isStraight(4)(state.roll) && !scores.small.length) return "small";
+    if (isTuple(4)(state.roll) && !scores.quad.length) return "quad";
+    if (isFullHouse(state.roll) && !scores.fullhouse.length) return "fullhouse";
+    if (isTuple(3)(state.roll) && !scores.triple.length) return "triple";
+    const count = countDice(state.roll);
+    for (let i = 6; i > 0; i--)
+      if (count[i] > 1 && !scores[upper_section[i]].length)
+        return upper_section[i];
+    return "";
+  };
+
+  const score_what = (row) => {
+    if (!row) return;
+    const value = upper_section.indexOf(row);
+    if (value > 0)
+      if (state.rerolls > 0)
+        return <span title="click to hold" onclick={() => holdValue(value)}>{LABEL[row]}?</span>;
+      else
+        return <span title="click to score" onclick={() => setScore(currentPlayerIndex(), row, state.roll)}>{LABEL[row]}? <i>✏️</i></span>;
+
+    return <span title="click to score" onclick={() => setScore(currentPlayerIndex(), row, state.roll)}>{LABEL[row]}! <i>✏️</i></span>;
+  };
+
+  return (
+    <div class={styles.what}>{() => score_what(what())}</div>
   );
 }
 
@@ -651,29 +713,29 @@ function ScoreSheet() {
       <tbody>
         <Row class={styles.head} label="Upper Section" forfeit=""
           value={(index) => <th title="click to rename players" onclick={renamePlayers}>{state.players[index].name}</th>} />
-        <InputRow label="Aces" value="ones" sheet={sheet} rule="Count and add only Aces" />
-        <InputRow label="Twos" value="twos" sheet={sheet} rule="Count and add only Twos" />
-        <InputRow label="Threes" value="threes" sheet={sheet} rule="Count and add only Threes" />
-        <InputRow label="Fours" value="fours" sheet={sheet} rule="Count and add only Fours" />
-        <InputRow label="Fives" value="fives" sheet={sheet} rule="Count and add only Fives" />
-        <InputRow label="Sixes" value="sixes" sheet={sheet} rule="Count and add only Sixes" />
-        <CalcRow label="Total" value="upper_subtotal" sheet={sheet} />
-        <CalcRow label="Bonus" value="upper_bonus" sheet={sheet} rule="If total score is over 63, score 35" />
-        <CalcRow label="Total" value="upper_total" sheet={sheet} />
+        <InputRow value="ones" sheet={sheet} rule="Count and add only Aces" />
+        <InputRow value="twos" sheet={sheet} rule="Count and add only Twos" />
+        <InputRow value="threes" sheet={sheet} rule="Count and add only Threes" />
+        <InputRow value="fours" sheet={sheet} rule="Count and add only Fours" />
+        <InputRow value="fives" sheet={sheet} rule="Count and add only Fives" />
+        <InputRow value="sixes" sheet={sheet} rule="Count and add only Sixes" />
+        <CalcRow value="upper_subtotal" sheet={sheet} />
+        <CalcRow value="upper_bonus" sheet={sheet} rule="If total score is over 63, score 35" />
+        <CalcRow value="upper_total" sheet={sheet} />
 
         <Row class={styles.head} label="Lower Section" value={() => <td></td>} forfeit="" />
-        <InputRow label="3 of a Kind" value="triple" sheet={sheet} rule="Add total of all dice" />
-        <InputRow label="4 of a Kind" value="quad" sheet={sheet} rule="Add total of all dice" />
-        <InputRow label="Full House" value="fullhouse" sheet={sheet} rule="Score 25" />
-        <InputRow label="Small Straight" value="small" sheet={sheet} rule="Sequence of 4, score 30" />
-        <InputRow label="Large Straight" value="large" sheet={sheet} rule="Sequence of 5, score 40" />
-        <InputRow label="YAHTZEE" value="yahtzee" sheet={sheet} rule="5 of a kind, score 50" />
-        <InputRow label="Chance" value="chance" sheet={sheet} rule="Score total of all dice" />
-        <CalcRow label="YAHTZEE BONUS" value="yahtzee_bonus" sheet={sheet} rule="Score 100 for each additional Yahtzee" />
+        <InputRow value="triple" sheet={sheet} rule="Add total of all dice" />
+        <InputRow value="quad" sheet={sheet} rule="Add total of all dice" />
+        <InputRow value="fullhouse" sheet={sheet} rule="Score 25" />
+        <InputRow value="small" sheet={sheet} rule="Sequence of 4, score 30" />
+        <InputRow value="large" sheet={sheet} rule="Sequence of 5, score 40" />
+        <InputRow value="yahtzee" sheet={sheet} rule="5 of a kind, score 50" />
+        <InputRow value="chance" sheet={sheet} rule="Score total of all dice" />
+        <CalcRow value="yahtzee_bonus" sheet={sheet} rule="Score 100 for each additional Yahtzee" />
 
-        <CalcRow label="Lower Section Total" value="lower_total" sheet={sheet} />
-        <CalcRow label="Upper Section Total" value="upper_total" sheet={sheet} />
-        <CalcRow label="Grand Total" value="total" sheet={sheet} />
+        <CalcRow value="lower_total" sheet={sheet} />
+        <CalcRow value="upper_total" sheet={sheet} />
+        <CalcRow value="total" sheet={sheet} />
       </tbody>
     </table>
   )
@@ -696,10 +758,10 @@ function Row(props) {
 }
 
 function InputRow(props) {
-  const { label, rule, value, sheet } = props;
+  const { rule, value, sheet } = props;
 
   return (
-    <Row label={label} rule={rule} value={(index) =>
+    <Row label={LABEL[value]} rule={rule} value={(index) =>
       <InputCol actual={() => sheet()[index][value].actual}
         maybe={() => sheet()[index][value].maybe}
         onclick={() => setScore(index, value, state.roll)} />}
@@ -710,10 +772,10 @@ function InputRow(props) {
 }
 
 function CalcRow(props) {
-  const { label, rule, value, sheet } = props;
+  const { rule, value, sheet } = props;
 
   return (
-    <Row class={styles.foot} label={label} rule={rule}
+    <Row class={styles.foot} label={LABEL[value]} rule={rule}
       value={(index) => <td>{sheet()[index][value].actual || 0}</td>}
       forfeit="" />
   );
