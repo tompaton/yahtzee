@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { createEffect, createMemo, For, Show, Switch, Match } from "solid-js";
+import { batch, createDeferred, createMemo, For, Show, Switch, Match } from "solid-js";
 
 import styles from './App.module.css';
 
@@ -54,7 +54,8 @@ function initSave() {
   if (localStorage.mastermind) {
     setState(JSON.parse(localStorage.mastermind));
   }
-  createEffect(() => {
+  createDeferred(() => {
+    console.log('saving...');
     localStorage.mastermind = JSON.stringify(state);
   });
 }
@@ -70,12 +71,14 @@ function zeroScores() {
       'scores': blankScores()
     };
   }
-  setState('players', Array.from(names, newPlayer));
-  setState('players', 0, 'current', true);
-  clearRoll();
-  setState('started', false);
-  setState("winner", null);
-  setState("undo", null);
+  batch(() => {
+    setState('players', Array.from(names, newPlayer));
+    setState('players', 0, 'current', true);
+    clearRoll();
+    setState('started', false);
+    setState("winner", null);
+    setState("undo", null);
+  });
 }
 
 function inputNames() {
@@ -89,54 +92,63 @@ function renamePlayers() {
   const names = inputNames();
   if (names === null) return;
 
-  for (let i = 0; i < names.length && i < state.players.length; i++)
-    setState('players', i, 'name', names[i].trim());
+  batch(() => {
+    for (let i = 0; i < names.length && i < state.players.length; i++)
+      setState('players', i, 'name', names[i].trim());
+  });
 }
 
 function toggleHold(i) {
   if (state.roll[i] === null) return;
-  setState("hold", i, !state.hold[i]);
 
-  // automatically hold all dice of same value
-  if (state.hold[i]) {
-    const value = state.roll[i];
-    for (let j = 0; j < 5; j++)
-      if (state.roll[j] == value)
-        setState("hold", j, true);
-  }
+  batch(() => {
+    setState("hold", i, !state.hold[i]);
+
+    // automatically hold all dice of same value
+    if (state.hold[i]) {
+      const value = state.roll[i];
+      for (let j = 0; j < 5; j++)
+        if (state.roll[j] == value)
+          setState("hold", j, true);
+    }
+  });
 }
 
 function rollDice() {
   if (state.rerolls == 0)
     return;
 
-  setState("rolling", true);
-  setState("started", true);
-  setState("help", false);
+  batch(() => {
+    setState("rolling", true);
+    setState("started", true);
+    setState("help", false);
 
-  setState("undo", {
-    'label': "Undo re-roll",
-    'player': null,
-    'row': null,
-    'roll': Array.from(state.roll),
-    'hold': Array.from(state.hold),
-    'rerolls': state.rerolls,
-    'yahtzee_bonus': null
+    setState("undo", {
+      'label': "Undo re-roll",
+      'player': null,
+      'row': null,
+      'roll': Array.from(state.roll),
+      'hold': Array.from(state.hold),
+      'rerolls': state.rerolls,
+      'yahtzee_bonus': null
+    });
   });
 
   window.setTimeout(rollDiceComplete, 250);
 }
 
 function rollDiceComplete() {
-  setState("rolling", false);
+  batch(() => {
+    setState("rolling", false);
 
-  for (let i = 0; i < 5; i++)
-    if (!state.hold[i])
-      setState("roll", i, Math.ceil(6.0 * Math.random()));
+    for (let i = 0; i < 5; i++)
+      if (!state.hold[i])
+        setState("roll", i, Math.ceil(6.0 * Math.random()));
 
-  setState("rerolls", state.rerolls - 1);
-  if (state.rerolls == 0)
-    setState('hold', [true, true, true, true, true]);
+    setState("rerolls", state.rerolls - 1);
+    if (state.rerolls == 0)
+      setState('hold', [true, true, true, true, true]);
+  });
 }
 
 function setRoll(roll_string) {
@@ -151,80 +163,86 @@ function setRoll(roll_string) {
     }
   }
 
-  if (result.length == 5) {
-    for (let i = 0; i < 5; i++)
-      setState("roll", i, result[i]);
-    setState("roll_input", "");
-    setState("started", true);
-    setState('help', false);
-    setState("undo", null); // no undo for manual entry
-  } else {
-    setState("roll_input", remainder);
-  }
+  batch(() => {
+    if (result.length == 5) {
+      for (let i = 0; i < 5; i++)
+        setState("roll", i, result[i]);
+      setState("roll_input", "");
+      setState("started", true);
+      setState('help', false);
+      setState("undo", null); // no undo for manual entry
+    } else {
+      setState("roll_input", remainder);
+    }
+  });
 }
 
 function setScore(player_index, row, roll) {
   const player = state.players[player_index];
-  // special case for yahtzee bonus:
-  // first yahtzee can be filled in to any row you like, but putting it anywhere
-  // other than the yahtzee row would be a bit unusual...
-  // subsequent yahtzee gets scored in any open row (though it seems in some
-  // variants you must do the upper section first)
-  // but we also want to record the bonus.
-  let yahtzee_bonus = false;
-  if (isYahtzee(roll) && player.scores.yahtzee.length && isYahtzee(player.scores.yahtzee[0])) {
-    appendRoll(player, 'yahtzee', roll);
-    yahtzee_bonus = true;
-  }
-  appendRoll(player, row, roll);
+  batch(() => {
+    // special case for yahtzee bonus:
+    // first yahtzee can be filled in to any row you like, but putting it anywhere
+    // other than the yahtzee row would be a bit unusual...
+    // subsequent yahtzee gets scored in any open row (though it seems in some
+    // variants you must do the upper section first)
+    // but we also want to record the bonus.
+    let yahtzee_bonus = false;
+    if (isYahtzee(roll) && player.scores.yahtzee.length && isYahtzee(player.scores.yahtzee[0])) {
+      appendRoll(player, 'yahtzee', roll);
+      yahtzee_bonus = true;
+    }
+    appendRoll(player, row, roll);
 
-  setState("undo", {
-    'label': "Undo set score",
-    'player': player_index,
-    'row': row,
-    'roll': Array.from(roll),
-    'hold': Array.from(state.hold),
-    'rerolls': state.rerolls,
-    'yahtzee_bonus': yahtzee_bonus
+    setState("undo", {
+      'label': "Undo set score",
+      'player': player_index,
+      'row': row,
+      'roll': Array.from(roll),
+      'hold': Array.from(state.hold),
+      'rerolls': state.rerolls,
+      'yahtzee_bonus': yahtzee_bonus
+    });
+
+    clearRoll();
+    nextPlayer();
+    if (gameFinished())
+      highlightWinner();
   });
-
-  clearRoll();
-  nextPlayer();
-  if (gameFinished())
-    highlightWinner();
 }
 
 function doUndo() {
   if (state.undo === null) return;
 
-  if (state.undo.player !== null) {
-    setState('winner', null);
-    setCurrent(state.undo.player);
-  }
-
-  if (state.undo.roll !== null) {
-    setState("roll", Array.from(state.undo.roll));
-  }
-
-  if (state.undo.rerolls !== null) {
-    setState("rerolls", state.undo.rerolls);
-  }
-
-  if (state.undo.hold !== null) {
-    setState("hold", Array.from(state.undo.hold));
-  }
-
-  if (state.undo.row !== null) {
-    popScore(state.undo.player, state.undo.row);
-  }
-
-  if (state.undo.yahtzee_bonus != null) {
-    if (state.undo.yahtzee_bonus) {
-      popScore(state.undo.player, "yahtzee_bonus");
+  batch(() => {
+    if (state.undo.player !== null) {
+      setState('winner', null);
+      setCurrent(state.undo.player);
     }
-  }
 
-  setState("undo", null);
+    if (state.undo.roll !== null) {
+      setState("roll", Array.from(state.undo.roll));
+    }
+
+    if (state.undo.rerolls !== null) {
+      setState("rerolls", state.undo.rerolls);
+    }
+
+    if (state.undo.hold !== null) {
+      setState("hold", Array.from(state.undo.hold));
+    }
+
+    if (state.undo.row !== null) {
+      popScore(state.undo.player, state.undo.row);
+    }
+
+    if (state.undo.yahtzee_bonus != null) {
+      if (state.undo.yahtzee_bonus) {
+        popScore(state.undo.player, "yahtzee_bonus");
+      }
+    }
+
+    setState("undo", null);
+  });
 }
 
 function setCurrent(player_index) {
@@ -237,7 +255,6 @@ function popScore(player_index, row) {
   let rolls = Array.from(state.players[player_index].scores[row]);
   rolls.pop();
   setState("players", player_index, "scores", row, rolls);
-
 }
 
 function appendRoll(player, row, roll) {
