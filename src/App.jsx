@@ -51,12 +51,12 @@ function blankScores() {
 }
 
 function initSave() {
-  if (localStorage.mastermind) {
-    setState(JSON.parse(localStorage.mastermind));
+  if (localStorage.yahtzee) {
+    setState(JSON.parse(localStorage.yahtzee));
   }
   createDeferred(() => {
     console.log('saving...');
-    localStorage.mastermind = JSON.stringify(state);
+    localStorage.yahtzee = JSON.stringify(state);
   });
 }
 
