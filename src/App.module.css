@@ -33,7 +33,8 @@
   margin: 0.5em;
 }
 
-.help {
+.help,
+.history {
   position: absolute;
   left: 0;
   top: 0;
@@ -47,7 +48,8 @@
   z-index: 1000;
 }
 
-.help button {
+.help button,
+.history button {
   position: absolute;
   top: 1em;
   right: 1em;
@@ -55,6 +57,10 @@
 
 .help li {
   margin-bottom: 0.75em;
+}
+
+.history table {
+  width: 100%;
 }
 
 .turn {
@@ -174,12 +180,14 @@ div.dot7 {
     font-size: 1.2em;
   }
 
-  div.help {
+  div.help,
+  div.history {
     margin: 0.5em;
     padding: 1em;
   }
 
-  div.help h1 {
+  div.help h1,
+  div.history h1 {
     font-size: 1.2em;
     margin: 0.5em;
   }

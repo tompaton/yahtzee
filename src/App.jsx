@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import { batch, createDeferred, createMemo, For, Show, Switch, Match } from "solid-js";
+import { batch, createDeferred, createMemo, For, Show, Switch, Match, createSignal } from "solid-js";
 
 import styles from './App.module.css';
 
@@ -33,6 +33,7 @@ const [state, setState] = createStore({
 
 // {player name: [{date: ..., scores: allScores}]
 const [history, setHistory] = createStore({});
+const [show_history, set_show_history] = createSignal(false);
 
 function blankScores() {
   return {
@@ -60,6 +61,9 @@ function initSave() {
     console.log('saving...');
     localStorage.yahtzee = JSON.stringify(state);
   });
+
+  if (localStorage.yahtzee_history)
+    setHistory(JSON.parse(localStorage.yahtzee_history));
 }
 
 function zeroScores() {
@@ -479,8 +483,6 @@ function currentPlayerIndex() {
 
 function writeToHistory() {
   console.log('saving history...');
-  if (localStorage.yahtzee_history)
-    setHistory(JSON.parse(localStorage.yahtzee_history));
 
   const ts = new Date().toISOString();
   for (const player of state.players)
@@ -500,6 +502,7 @@ function App() {
         </h1>
         <button onClick={() => zeroScores()}>New Game</button>
         <button onClick={() => setState('help', !state.help)}>Help</button>
+        <button onClick={() => set_show_history(!show_history())}>History</button>
         <Show when={state.undo}>
           <button onclick={() => doUndo()}>{state.undo.label}</button>
         </Show>
@@ -523,6 +526,15 @@ function App() {
             <li>Some hints/statistics for the current player can be enabled by clicking the checkboxes below the scoresheet</li>
             <li>Note: Probabilities displayed are simplistic and don't consider re-rolls.</li>
           </ul>
+        </div>
+      </Show>
+      <Show when={show_history()}>
+        <div class={styles.history}>
+          <button onclick={() => set_show_history(false)}>x</button>
+          <h1>
+            Scoresheet History
+          </h1>
+          <HistoryTable />
         </div>
       </Show>
       <Roll />
@@ -879,6 +891,71 @@ function Die(props) {
       title={face === null ? "" : face + (hold ? " (click to allow re-roll)" : " (click to hold)")}>
       <For each={DOTS[face]}>{(dot) => <div class={styles['dot' + dot]} />}</For>
     </div>
+  );
+}
+
+function formatDate(d) {
+  const d1 = new Date(d);
+  return d1.toLocaleDateString('en-AU');
+}
+
+function formatTime(d) {
+  const d1 = new Date(d);
+  return d1.toLocaleTimeString('en-AU');
+}
+
+function HistoryTable() {
+  const players = () => {
+    return Object.keys(history);
+  }
+
+  const table = () => {
+    let scores = {};
+    for (const player of players())
+      for (const game of history[player]) {
+        if (scores[game.date] === undefined)
+          scores[game.date] = {};
+        scores[game.date][player] = game.scores.total;
+      }
+
+    let dates = Object.keys(scores);
+    dates.sort();
+
+    let tbl = [];
+
+    for (const date of dates) {
+      const row = []
+      for (const player of players())
+        row.push(scores[date][player] || '')
+      tbl.push({ ts: date, date: formatDate(date), time: formatTime(date), scores: row });
+    }
+
+    return tbl;
+  }
+
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <For each={players()}>{(player) => <th>{player}</th>}</For>
+        </tr>
+      </thead>
+      <tbody>
+        <For each={table()}>
+          {(row) =>
+            <tr>
+              <td>{row.date}</td>
+              <td>{row.time}</td>
+              <For each={row.scores}>
+                {(score) => <td>{score}</td>}
+              </For>
+            </tr>
+          }
+        </For>
+      </tbody>
+    </table>
   );
 }
 
