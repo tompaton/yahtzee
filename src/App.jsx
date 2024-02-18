@@ -31,6 +31,8 @@ const [state, setState] = createStore({
   ]
 });
 
+// {player name: [{date: ..., scores: allScores}]
+const [history, setHistory] = createStore({});
 
 function blankScores() {
   return {
@@ -209,8 +211,10 @@ function setScore(player_index, row, roll) {
 
     clearRoll();
     nextPlayer();
-    if (gameFinished())
+    if (gameFinished()) {
       highlightWinner();
+      writeToHistory();
+    }
   });
 }
 
@@ -471,6 +475,18 @@ function currentPlayerIndex() {
   }
   // during nextPlayer() current will be false for all players for a moment
   return 0;
+}
+
+function writeToHistory() {
+  console.log('saving history...');
+  if (localStorage.yahtzee_history)
+    setHistory(JSON.parse(localStorage.yahtzee_history));
+
+  const ts = new Date().toISOString();
+  for (const player of state.players)
+    setHistory(player.name, l => [...(l || []), { date: ts, scores: allScores(player.scores) }]);
+
+  localStorage.yahtzee_history = JSON.stringify(history);
 }
 
 function App() {
