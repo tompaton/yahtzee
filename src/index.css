@@ -12,3 +12,13 @@ body {
   flex-direction: row;
   justify-content: center;
 }
+
+a,
+a:visited {
+  color: lightblue;
+}
+
+a:hover,
+a:active {
+  font-weight: bold;
+}

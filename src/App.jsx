@@ -1,4 +1,4 @@
-import { createStore } from "solid-js/store";
+import { createStore, unwrap } from "solid-js/store";
 import { batch, createDeferred, createMemo, For, Show, Switch, Match, createSignal } from "solid-js";
 
 import styles from './App.module.css';
@@ -486,9 +486,39 @@ function writeToHistory() {
 
   const ts = new Date().toISOString();
   for (const player of state.players)
-    setHistory(player.name, l => [...(l || []), { date: ts, scores: allScores(player.scores) }]);
+    setHistory(player.name, l => [...(l || []), {
+      date: ts,
+      scores: allScores(player.scores),
+      raw_scores: structuredClone(unwrap(player.scores))
+    }]);
 
   localStorage.yahtzee_history = JSON.stringify(history);
+}
+
+function readFromHistory(ts) {
+  batch(() => {
+    set_show_history(false);
+    setState('undo', null);
+
+    const players = [];
+
+    // find players & scores
+    for (const player in history) {
+      for (const game of history[player])
+        if (game.date === ts)
+          players.push({
+            name: player,
+            current: true,
+            scores: game.raw_scores
+          });
+    }
+
+    setState('players', players);
+
+    clearRoll();
+
+    highlightWinner();
+  });
 }
 
 function App() {
@@ -947,7 +977,11 @@ function HistoryTable() {
           {(row) =>
             <tr>
               <td>{row.date}</td>
-              <td>{row.time}</td>
+              <td>
+                <a href="#"
+                  title="click to load final fame scoresheet"
+                  onclick={(e) => { e.preventDefault(); readFromHistory(row.ts) }}>{row.time}</a>
+              </td>
               <For each={row.scores}>
                 {(score) => <td>{score}</td>}
               </For>
