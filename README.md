@@ -55,8 +55,6 @@ You can deploy the `dist` folder to any static host provider (netlify, surge, no
 
 # TODO
 
-- copyright/links to tompaton.com
-
 - allow selecting players from history
 - compute some stats in history for each player (min, max, average, quartiles...)
 - compute probabilities including re-rolls, hints at re-roll strategy
@@ -64,3 +62,5 @@ You can deploy the `dist` folder to any static host provider (netlify, surge, no
 - improved mobile/ipad layout
   - separate page for all scores, only show current player
   - hide filled rows
+
+- alternate games/scoring systems (yatzy)

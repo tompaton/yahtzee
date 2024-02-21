@@ -556,6 +556,7 @@ function App() {
             <li>Some hints/statistics for the current player can be enabled by clicking the checkboxes below the scoresheet</li>
             <li>Note: Probabilities displayed are simplistic and don't consider re-rolls.</li>
           </ul>
+          <Copyright />
         </div>
       </Show>
       <Show when={show_history()}>
@@ -586,8 +587,13 @@ function App() {
           onclick={() => setState("show_hint", !state.show_hint)} />
         <label for="show_hint">Show hints?</label>
       </div>
+      <Copyright />
     </div>
   );
+}
+
+function Copyright() {
+  return <p style="text-align: center">&copy; 2024 <a href="https://tompaton.com/">Tom Paton</a></p>;
 }
 
 const LABEL = {
